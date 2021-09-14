@@ -1,0 +1,57 @@
+env:
+  mock:
+    data: some value
+http:
+  headerNames:
+    jwt: Authorization
+    accountId: X-Account-Id
+subastas:
+  colly:
+    storage: "/tmp/colly_storage.db"
+  index:
+    public: public
+    private: private
+authz:
+  jwks:
+    url: "https://something.eu.auth0.com/.well-known/jwks.json"
+  users:
+    anonymous: anonymous
+  roles:
+    loggedIn: user
+    anonymous: anonymous
+    admin: admin
+    accountOwner: account_owner
+graphql:
+  url: "http://localhost:8082/v1/graphql"
+  hasura:
+    adminSecret: myadminsecretkey
+    headerNames:
+      userId: X-Hasura-User-Id
+      accountId: X-Hasura-Account-Id
+      role: X-Hasura-Role
+logger:
+  level: debug
+rp:
+  server:
+    listenAddress: ":1340"
+  es:
+    url: "http://localhost:9200"
+    index:
+      public: /public/
+      private: /private/
+    headerNames:
+      authorization: X-Es-Authorization
+  graphql:
+    url: "http://localhost:8082/v1/graphql"
+    hasura:
+hshttp:
+  headerNames:
+    accountId: "X-Account-Id"
+    jwt: "Authorization"
+subscription:
+  server:
+    listenAddress: ":1340"
+  stripe:
+    webhookSecret: whsec_xxx
+    domain: yyyy
+    apiKey: sk_test_xxxx

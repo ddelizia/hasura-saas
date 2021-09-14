@@ -1,0 +1,45 @@
+mutation CreateSubscriptionCustomer($name: String!, $id_plan: String!, $id_user: String!, $stripe_customer: String!, $status: String!, $id_role: String!) {
+	insert_saas_account(objects: {
+		name: $name, 
+		subscription_status: {
+			data: {
+				status: $status,
+				id_plan: $id_plan
+			}
+		}, 
+		subscription_customer: {
+			data: {
+				stripe_customer: $stripe_customer
+			}
+		},
+		saas_memberships: {
+			data: {
+				id_role: $id_role, 
+				id_user: $id_user
+			}
+		}
+	}) 
+	{
+		affected_rows
+		returning {
+			id
+		}
+	}
+}
+
+mutation SetSubscriptioStatus($status: String!, $is_active: Boolean!, $accountId: uuid!, $stripe_subscription_id: String!) {
+  update_subscription_status(where: {id_account: {_eq: $accountId}}, _set: {status: $status, is_active: $is_active, stripe_subscription_id: $stripe_subscription_id}) {
+    affected_rows
+		returning {
+      id_account
+      is_active
+      status
+    }
+  }
+}
+
+mutation AddSubscriptionEvent($type: String!, $data: jsonb!) {
+  insert_subscription_event(objects: {data: $data, type: $type}) {
+    affected_rows
+  }
+}

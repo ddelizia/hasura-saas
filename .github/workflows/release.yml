@@ -1,0 +1,38 @@
+name: ci
+on:
+  push:
+    tags:
+      - v*
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  
+  docker:
+    name: Create docker image and publish
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build docker images
+      run: ./scripts/docker-build.sh $GITHUB_SHA
+
+    - name: Log docker images
+      run: ./scripts/docker-push.sh $GITHUB_SHA ${{ github.ref }}
+
+  go-list:
+    name: Create go package
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: List go package
+      run: ./scripts/go-list.sh ${{ github.ref }}

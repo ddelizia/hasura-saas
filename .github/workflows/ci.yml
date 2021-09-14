@@ -1,0 +1,77 @@
+name: ci
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+env:
+  STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
+  STRIPE_PRICE_ID: ${{ secrets.STRIPE_PRICE_ID }}
+  STRIPE_WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+  HASURA_GRAPHQL_ADMIN_SECRET: "mysecrethasura"
+  POSTGRES_PASSWORD: "postgrespassword"
+  REGISTRY: ghcr.io
+
+jobs:
+  unit_test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '^1.16.5'
+    
+    - name: Check go version
+      run: go version
+
+    - name: Execute unit tests
+      run: ./scripts/test-unit.sh
+
+  static_analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '^1.16.5'
+
+    - name: Execute static check
+      run: ./scripts/static-check.sh
+
+  e2e:
+    name: End 2 End Tests
+    needs: [unit_test, static_analysis]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '^1.16.5'
+    
+    - name: Execute e2e tests
+      run: ./scripts/test-e2e.sh
+  
+  docker:
+    name: Create docker image and publish
+    needs: [e2e]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build docker images
+      run: ./scripts/docker-build.sh $GITHUB_SHA
+
+    - name: Log docker images
+      run: ./scripts/docker-push.sh $GITHUB_SHA ${GITHUB_REF#refs/heads/}

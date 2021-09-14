@@ -1,0 +1,25 @@
+model:
+  package: gqlsdk
+  filename: ./pkg/gqlsdk/gen_models.go
+client:
+  package: gqlsdk
+  filename: ./pkg/gqlsdk/gen_client.go
+models:
+  Int:
+    model: github.com/99designs/gqlgen/graphql.Int64
+  Date:
+    model: github.com/99designs/gqlgen/graphql.Time
+  jsonb:
+    model: map[string]interface{}
+endpoint:
+  url: http://localhost:8082/v1/graphql
+  headers:
+    X-Hasura-Admin-Secret: ${HASURA_GRAPHQL_ADMIN_SECRET}
+query:
+  - "./graphql/*.graphql"
+generate:
+  clientV2: true
+  prefix:
+    mutation: Mutation
+    query: Query
+
