@@ -14,5 +14,5 @@ push_docker () {
   docker push $IMAGE_NAME:$TARGET_TAG
 }
 
-build_docker rp
-build_docker subscription
+push_docker rp
+push_docker subscription

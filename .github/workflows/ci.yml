@@ -7,9 +7,6 @@ on:
       - release/*
     paths-ignore:
       - '**.md'
-  pull_request:
-    paths-ignore:
-      - '**.md'
 
 env:
   STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
