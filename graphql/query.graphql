@@ -29,3 +29,10 @@ query GetStripeSubscription ($id_account: uuid!) {
     stripe_subscription_id
   }
 }
+
+## Subscription
+query GetAccountFromSubscription ($stripe_subscription_id: String!) {
+  subscription_status(where: {stripe_subscription_id: {_eq: $stripe_subscription_id}}) {
+    id_account
+  }
+}

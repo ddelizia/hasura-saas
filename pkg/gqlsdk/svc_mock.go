@@ -44,3 +44,8 @@ func (m *ServiceMock) GetRoleForUserAndAccount(ctx context.Context, user string,
 	args := m.Called(ctx, user, account, interceptors)
 	return args.Get(0).(*QueryGetRoleForUserAndAccount), args.Error(1)
 }
+
+func (m *ServiceMock) GetAccountFromSubscription(ctx context.Context, stripeSubscriptionID string, interceptors ...clientv2.RequestInterceptor) (*QueryGetAccountFromSubscription, error) {
+	args := m.Called(ctx, stripeSubscriptionID, interceptors)
+	return args.Get(0).(*QueryGetAccountFromSubscription), args.Error(1)
+}

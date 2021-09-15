@@ -12,6 +12,7 @@ import (
 
 func beforeEvent(event stripe.Event, data interface{}) error {
 	err := json.Unmarshal(event.Data.Raw, &data)
+	logrus.WithField("eventType", event.Type).Debug("processing event")
 	if err != nil {
 		logrus.WithError(err).WithFields(logrus.Fields{
 			"eventType": event.Type,

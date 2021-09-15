@@ -55,7 +55,7 @@ func initSubscription() map[string]interface{} {
 		context.Background(),
 		fmt.Sprintf(`
 		mutation InitSubscription {
-			init_subscription ( data: { account_name: "%0s", id_plan: "%1s" } ) {
+			subscription_init ( data: { account_name: "%0s", id_plan: "%1s" } ) {
 				account_id
 			}
 		}`, generateAccountName(), "basic"),
@@ -83,7 +83,7 @@ func createSubscription(a, cardN, cardM, cardY, cardCVC string) map[string]inter
 		context.Background(),
 		fmt.Sprintf(`
 		mutation CreateSubscription {
-			create_subscription ( data: { payment_method_id: "%0s" } ) {
+			subscription_create ( data: { payment_method_id: "%0s" } ) {
 				account_id,
 				is_active
 			}
@@ -153,7 +153,7 @@ var _ = Describe("Subscription e2e", func() {
 		err := graphqlService.Execute(
 			context.Background(),
 			`mutation CancelSubscription {
-				cancel_subscription {
+				subscription_cancel {
 					status
 				}
 			}`,

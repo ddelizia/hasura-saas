@@ -1,4 +1,4 @@
-name: ci
+name: Release Build
 on:
   push:
     tags:

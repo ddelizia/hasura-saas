@@ -51,7 +51,7 @@ func (h *WebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	result, _ := h.SdkSvc.AddSubscriptionEvent(r.Context(), event.Type, data)
 
-	EventMapping(event, result.InsertSubscriptionEvent.Returning[0].ID)
+	EventMapping(r.Context(), event, result.InsertSubscriptionEvent.Returning[0].ID, h.SdkSvc)
 
 	w.WriteHeader(http.StatusOK)
 }
