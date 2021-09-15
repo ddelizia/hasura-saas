@@ -6,6 +6,9 @@ on:
     paths-ignore:
       - '**.md'
 
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   
   docker:
@@ -23,7 +26,7 @@ jobs:
       run: ./scripts/docker-build.sh $GITHUB_SHA
 
     - name: Log docker images
-      run: ./scripts/docker-push.sh $GITHUB_SHA ${{ github.ref }}
+      run: ./scripts/docker-push.sh $GITHUB_SHA ${GITHUB_REF#refs/tags/}
 
   go-list:
     name: Create go package
@@ -32,4 +35,4 @@ jobs:
     - uses: actions/checkout@v2
     
     - name: List go package
-      run: ./scripts/go-list.sh ${{ github.ref }}
+      run: ./scripts/go-list.sh ${GITHUB_REF#refs/tags/}
