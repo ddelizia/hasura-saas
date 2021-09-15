@@ -23,5 +23,3 @@ vendor/
 Makefile
 
 setEnv.sh
-
-stripe*

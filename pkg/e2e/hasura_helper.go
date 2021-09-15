@@ -35,7 +35,7 @@ func GetAllTestAccounts() map[string]string {
 
 	response := map[string]string{}
 	for _, account := range result.SaasAccount {
-		response[*&account.Name] = account.ID
+		response[account.Name] = account.ID
 	}
 
 	return response

@@ -4,7 +4,7 @@ S_TAG=$1
 T_TAG=$2
 
 SOURCE_TAG=${S_TAG:-latest}
-TARGET_TAG=${T_TAG:-latest}
+TARGET_TAG=$(echo ${T_TAG:-latest} | tr '/' '_')
 
 push_docker () {
   APP=$1
@@ -14,5 +14,5 @@ push_docker () {
   docker push $IMAGE_NAME:$TARGET_TAG
 }
 
-build_docker rp
-build_docker subscription
+push_docker rp
+push_docker subscription

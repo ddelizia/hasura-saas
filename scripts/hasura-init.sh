@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "👉 Installing strip price id"
+echo "👉 Installing stripe price id"
 curl --location --request POST 'http://localhost:8082/v1/graphql' \
     --header 'content-type: application/json' \
     --header "x-hasura-admin-secret: $HASURA_GRAPHQL_ADMIN_SECRET" \

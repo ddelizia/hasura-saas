@@ -3,16 +3,16 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - '**.md'
-  pull_request:
+      - feature/*
+      - release/*
     paths-ignore:
       - '**.md'
 
 env:
   STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
   STRIPE_PRICE_ID: ${{ secrets.STRIPE_PRICE_ID }}
-  STRIPE_WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+  STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+
   HASURA_GRAPHQL_ADMIN_SECRET: "mysecrethasura"
   POSTGRES_PASSWORD: "postgrespassword"
   REGISTRY: ghcr.io
@@ -73,5 +73,5 @@ jobs:
     - name: Build docker images
       run: ./scripts/docker-build.sh $GITHUB_SHA
 
-    - name: Log docker images
+    - name: Push docker images
       run: ./scripts/docker-push.sh $GITHUB_SHA ${GITHUB_REF#refs/heads/}
