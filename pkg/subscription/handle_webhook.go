@@ -43,13 +43,13 @@ func (h *WebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logrus.WithField("event", event.Type).Debug("storing event")
+	logrus.WithField("event", event.Type).Debug("storing event into hasura")
 	var data map[string]interface{}
 	err = json.Unmarshal(b, &data)
 	if err != nil {
 		logrus.WithError(err).WithField("body", string(b)).Error("not able to unmarshal")
 	}
-	result, err := h.SdkSvc.AddSubscriptionEvent(r.Context(), event.Type, data)
+	result, _ := h.SdkSvc.AddSubscriptionEvent(r.Context(), event.Type, data)
 
 	EventMapping(event, result.InsertSubscriptionEvent.Returning[0].ID)
 
