@@ -39,3 +39,8 @@ func (m *ServiceMock) AddSubscriptionEvent(ctx context.Context, typeArg string, 
 	args := m.Called(ctx, typeArg, data, interceptors)
 	return args.Get(0).(*MutationAddSubscriptionEvent), args.Error(1)
 }
+
+func (m *ServiceMock) GetRoleForUserAndAccount(ctx context.Context, user string, account string, interceptors ...clientv2.RequestInterceptor) (*QueryGetRoleForUserAndAccount, error) {
+	args := m.Called(ctx, user, account, interceptors)
+	return args.Get(0).(*QueryGetRoleForUserAndAccount), args.Error(1)
+}

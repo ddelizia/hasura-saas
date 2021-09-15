@@ -31,8 +31,6 @@ func generateAccountName() string {
 
 func createPaymentMethod(number, expMonth, expYear, cvc string) string {
 
-	os.Setenv("SUBSCRIPTION.STRIPE.API_KEY", os.Getenv("STRIPE_KEY"))
-
 	params := &stripe.PaymentMethodParams{
 		Type: stripe.String("card"),
 		Card: &stripe.PaymentMethodCardParams{
@@ -110,15 +108,15 @@ func createSubscription(a, cardN, cardM, cardY, cardCVC string) map[string]inter
 
 var _ = Describe("Subscription e2e", func() {
 
+	os.Setenv("GRAPHQL.HASURA.ADMINSECRET", os.Getenv("HASURA_GRAPHQL_ADMIN_SECRET"))
+	os.Setenv("SUBSCRIPTION.STRIPE.APIKEY", os.Getenv("STRIPE_KEY"))
+	os.Setenv("SUBSCRIPTION.STRIPE.WEBHOOKSECRET", os.Getenv("STRIPE_WEBHOOK_SECRET"))
+
 	stripe.Key = subscription.ConfigApiKey()
 	logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableTimestamp: true,
 	})
-
-	os.Setenv("GRAPHQL.HASURA.ADMINSECRET", os.Getenv("HASURA_GRAPHQL_ADMIN_SECRET"))
-	os.Setenv("SUBSCRIPTION.STRIPE.APIKEY", os.Getenv("STRIPE_KEY"))
-	os.Setenv("SUBSCRIPTION.STRIPE.WEBHOOKSECRET", os.Getenv("STRIPE_WEBHOOK_SECRET"))
 
 	It("I should be able to execute complete payment flow with the default card", func() {
 

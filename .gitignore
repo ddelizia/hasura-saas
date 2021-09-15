@@ -18,8 +18,10 @@ vendor/
 
 *.coverprofile
 
-hasura
+/hasura
 
 Makefile
 
 setEnv.sh
+
+stripe*

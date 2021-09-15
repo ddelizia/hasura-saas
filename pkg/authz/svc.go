@@ -1,6 +1,6 @@
 package authz
 
-import "github.com/ddelizia/hasura-saas/pkg/gqlreq"
+import "github.com/ddelizia/hasura-saas/pkg/gqlsdk"
 
 type Service interface {
 	RoleGetter
@@ -14,8 +14,8 @@ type service struct {
 	AuthInfoGetterImpl
 }
 
-func NewService() Service {
-	roleGetterImpl := RoleGetterImpl{GraphQlSvc: gqlreq.NewService()}
+func NewService(sdkService gqlsdk.Service) Service {
+	roleGetterImpl := RoleGetterImpl{GraphQlSvc: sdkService}
 	userGetterImpl := UserGetterImpl{}
 	return &service{
 		RoleGetterImpl: roleGetterImpl,

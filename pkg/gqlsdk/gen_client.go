@@ -126,6 +126,9 @@ type MutationSetSubscriptioStatus struct {
 type MutationAddSubscriptionEvent struct {
 	InsertSubscriptionEvent *struct {
 		AffectedRows int64 "json:\"affected_rows\" graphql:\"affected_rows\""
+		Returning    []*struct {
+			ID string "json:\"id\" graphql:\"id\""
+		} "json:\"returning\" graphql:\"returning\""
 	} "json:\"insert_subscription_event\" graphql:\"insert_subscription_event\""
 }
 type QueryGetAccountInfoForCreatingSubscription struct {
@@ -212,6 +215,9 @@ func (c *Client) SetSubscriptioStatus(ctx context.Context, status string, isActi
 const AddSubscriptionEventDocument = `mutation AddSubscriptionEvent ($type: String!, $data: jsonb!) {
 	insert_subscription_event(objects: {data:$data,type:$type}) {
 		affected_rows
+		returning {
+			id
+		}
 	}
 }
 `

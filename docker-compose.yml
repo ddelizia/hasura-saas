@@ -51,7 +51,7 @@ services:
     expose: 
     - "1340"
     ports: 
-    - "1341:1341"
+    - "1341:1340"
     command: 
     - "go"
     - "run"
@@ -82,6 +82,19 @@ services:
     - "go"
     - "run"
     - "./cmd/rp/main.go"
+
+  stripe-cli:
+    image: stripe/stripe-cli
+    depends_on: 
+    - hs-subscription
+    environment: 
+      STRIPE_API_KEY: ${STRIPE_KEY}
+    entrypoint:
+    - "/bin/stripe" 
+    - "listen"
+    - "--forward-to"
+    - "hs-subscription:1340/webhook"
+    - "--latest"
 
 volumes:
   db_data:

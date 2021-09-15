@@ -4,12 +4,12 @@ import (
 	"time"
 
 	"github.com/MicahParks/keyfunc"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/joomcode/errorx"
 	"github.com/sirupsen/logrus"
 )
 
-func getJwtB64PublicKey() (*keyfunc.JWKS, error) {
+func getJwtB64PublicKey() (*keyfunc.JWKs, error) {
 	// Create the keyfunc options. Refresh the JWKS every hour and log errors.
 	refreshInterval := time.Hour
 	options := keyfunc.Options{

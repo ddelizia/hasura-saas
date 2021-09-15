@@ -49,28 +49,9 @@ func (h *WebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logrus.WithError(err).WithField("body", string(b)).Error("not able to unmarshal")
 	}
-	h.SdkSvc.AddSubscriptionEvent(r.Context(), event.Type, data)
+	result, err := h.SdkSvc.AddSubscriptionEvent(r.Context(), event.Type, data)
 
-	switch event.Type {
-	case "payment_intent.succeeded":
-
-	case "checkout.session.completed":
-		// Payment is successful and the subscription is created.
-		// You should provision the subscription.
-	case "invoice.paid":
-		// Continue to provision the subscription as payments continue to be made.
-		// Store the status in your database and check when a user accesses your service.
-		// This approach helps you avoid hitting rate limits.
-	case "invoice.payment_failed":
-		// The payment failed or the customer does not have a valid payment method.
-		// The subscription becomes past_due. Notify your customer and send them to the
-		// customer portal to update their payment information.
-	case "customer.created":
-		// Customer has been created
-	default:
-		// unhandled event type
-		logrus.WithField("eventType", event.Type).Info("event not processed")
-	}
+	EventMapping(event, result.InsertSubscriptionEvent.Returning[0].ID)
 
 	w.WriteHeader(http.StatusOK)
 }

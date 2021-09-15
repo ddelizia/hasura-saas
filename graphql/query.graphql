@@ -1,13 +1,6 @@
-## Authz
 
-query GetRoleForUserAndAccount ($user: String!, $account: uuid!){
-  saas_membership(where: {id_user: {_eq: $user}, id_account: {_eq: $account}}) {
-    id_role
-  }
-}
 
 ## Subscription
-
 query GetAccountInfoForCreatingSubscription ($id: uuid!) {
   saas_account(where: {id: {_eq: $id}}) {
     id
@@ -23,12 +16,14 @@ query GetAccountInfoForCreatingSubscription ($id: uuid!) {
   }
 }
 
+## Subscription, Authz
 query GetRoleForUserAndAccount ($user: String!, $account: uuid!){
   saas_membership(where: {id_user: {_eq: $user}, id_account: {_eq: $account}}) {
     id_role
   }
 }
 
+## Subscription
 query GetStripeSubscription ($id_account: uuid!) {
   subscription_status(where: {id_account: {_eq: $id_account}}) {
     stripe_subscription_id

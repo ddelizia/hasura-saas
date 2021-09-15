@@ -1,8 +1,5 @@
 #!/bin/bash
 
-echo "⌛️ Waiting 30s"
-sleep 30
-
 echo "👉 Installing strip price id"
 curl --location --request POST 'http://localhost:8082/v1/graphql' \
     --header 'content-type: application/json' \

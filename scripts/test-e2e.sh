@@ -4,6 +4,9 @@
 
 docker-compose up -d
 
+echo "⌛️ Waiting 30s"
+sleep 30
+
 ./scripts/hasura-init.sh
 
-env GRAPHQL.HASURA.ADMINSECRET=mysecrethasura EXECUTE_E2E=true go test -v ./pkg/e2e
+EXECUTE_E2E=true go test -v ./pkg/e2e

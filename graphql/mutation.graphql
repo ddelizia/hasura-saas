@@ -1,3 +1,4 @@
+## Subscription
 mutation CreateSubscriptionCustomer($name: String!, $id_plan: String!, $id_user: String!, $stripe_customer: String!, $status: String!, $id_role: String!) {
 	insert_saas_account(objects: {
 		name: $name, 
@@ -27,6 +28,7 @@ mutation CreateSubscriptionCustomer($name: String!, $id_plan: String!, $id_user:
 	}
 }
 
+## Subscription
 mutation SetSubscriptioStatus($status: String!, $is_active: Boolean!, $accountId: uuid!, $stripe_subscription_id: String!) {
   update_subscription_status(where: {id_account: {_eq: $accountId}}, _set: {status: $status, is_active: $is_active, stripe_subscription_id: $stripe_subscription_id}) {
     affected_rows
@@ -38,8 +40,12 @@ mutation SetSubscriptioStatus($status: String!, $is_active: Boolean!, $accountId
   }
 }
 
+## Subscription
 mutation AddSubscriptionEvent($type: String!, $data: jsonb!) {
   insert_subscription_event(objects: {data: $data, type: $type}) {
     affected_rows
+    returning {
+      id
+    }
   }
 }
