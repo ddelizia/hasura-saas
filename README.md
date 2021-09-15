@@ -4,7 +4,7 @@
 [![GitHub forks](https://img.shields.io/github/forks/ddelizia/hasura-saas.svg?style=social&label=Fork&maxAge=2592000)](https://GitHub.com/ddelizia/hasura-saas/network/) 
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/ddelizia/hasura-saas)](https://pkg.go.dev/github.com/ddelizia/hasura-saas)
-[![Test Actions Status](https://github.com/ddelizia/hasura-saas/workflows/Test/badge.svg)](https://github.com/ddelizia/hasura-saas/actions)
+[![Test Actions Status](https://github.com/ddelizia/hasura-saas/workflows/ci/badge.svg)](https://github.com/ddelizia/hasura-saas/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ddelizia/hasura-saas)](https://goreportcard.com/report/github.com/ddelizia/hasura-saas)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/ddelizia/channelify/blob/main/LICENSE)
 
