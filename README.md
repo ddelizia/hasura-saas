@@ -10,6 +10,11 @@
 
 ## About the project
 
+This repository is an intent to create a set of microservices to be able to spin up a SaaS application backed by Hasura.
+
+## Architecture
+
+![Architecture Overview](docs/images/Architecture.png)
 
 ### Status
 
