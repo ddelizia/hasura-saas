@@ -73,5 +73,5 @@ jobs:
     - name: Build docker images
       run: ./scripts/docker-build.sh $GITHUB_SHA
 
-    - name: Log docker images
+    - name: Push docker images
       run: ./scripts/docker-push.sh $GITHUB_SHA ${GITHUB_REF#refs/heads/}
