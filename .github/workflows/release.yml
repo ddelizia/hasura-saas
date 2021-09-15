@@ -6,6 +6,9 @@ on:
     paths-ignore:
       - '**.md'
 
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   
   docker:
