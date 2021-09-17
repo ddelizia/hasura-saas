@@ -1,6 +1,8 @@
 #!/bin/bash
 
-VERSION="v0.0.1-alpha.1"
+set -e
+
+VERSION="v0.0.1-alpha.2"
 
 download () {
   FILE=$1
