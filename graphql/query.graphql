@@ -9,6 +9,7 @@ query GetAccountInfoForCreatingSubscription ($id: uuid!) {
     }
     subscription_status {
       status
+      stripe_subscription_id
       subscription_plan {
         stripe_code
       }
@@ -34,5 +35,19 @@ query GetStripeSubscription ($id_account: uuid!) {
 query GetAccountFromSubscription ($stripe_subscription_id: String!) {
   subscription_status(where: {stripe_subscription_id: {_eq: $stripe_subscription_id}}) {
     id_account
+  }
+}
+
+## Subscription
+query GetStripePlanFromPlan ( $id: String!) {
+  subscription_plan(where: {id: {_eq: $id}, is_active: {_eq: true}}) {
+    stripe_code
+  }
+}
+
+## Subscription
+query GetPlanFromStripePlan ( $stripe_code: String!) {
+  subscription_plan(where: {stripe_code: {_eq: $stripe_code}, is_active: {_eq: true}}) {
+    id
   }
 }

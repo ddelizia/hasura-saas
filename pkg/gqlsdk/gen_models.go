@@ -26,12 +26,12 @@ type CancelSubscriptionOutput struct {
 }
 
 type ChangeSubscriptionInput struct {
-	AccountID string `json:"account_id"`
-	IsActive  bool   `json:"is_active"`
+	IDPlan string `json:"id_plan"`
 }
 
 type ChangeSubscriptionOutput struct {
-	AccessToken string `json:"accessToken"`
+	AccountID string `json:"account_id"`
+	IsActive  bool   `json:"is_active"`
 }
 
 type CreateSubscriptionInput struct {

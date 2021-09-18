@@ -41,7 +41,7 @@ Handle subscription creation
 */
 func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	logrus.Debug("init subscription request")
+	logrus.Debug("create subscription request")
 	actionPayload := &ActionCreatePayload{}
 	err := hshttp.GetBody(r, actionPayload)
 	if err != nil {
@@ -111,12 +111,12 @@ func attachPaymentMethodToStripeCustomer(c string, paymentMethodId string, price
 		params,
 	)
 	if err != nil {
-		logrus.WithError(err).WithField("customer", c).Error("payment attachment failde")
+		logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error("payment attachment failde")
 		return nil, errorx.InternalError.Wrap(err, "unable to attach payment to the subscription")
 	}
 	logrus.WithFields(logrus.Fields{
-		"stripe.attach": logger.PrintStruct(pm),
-		"customer":      c,
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(pm),
+		LOG_PARAM_CUSTOMER_ID:     c,
 	}).Debug("payment attached")
 
 	// Update customer invoice settings with the default payment method
@@ -130,12 +130,12 @@ func attachPaymentMethodToStripeCustomer(c string, paymentMethodId string, price
 		customerParams,
 	)
 	if err != nil {
-		logrus.WithError(err).WithField("customer", c).Error("unable to update customer invoice")
+		logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error("unable to update customer invoice")
 		return nil, errorx.InternalError.Wrap(err, "unable to update invoice settings")
 	}
 	logrus.WithFields(logrus.Fields{
-		"stripe.customer.updated": logger.PrintStruct(updatedCustomer),
-		"customer":                c,
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(updatedCustomer),
+		LOG_PARAM_CUSTOMER_ID:     c,
 	}).Debug("default payment method for customer updated")
 
 	// Create subscription to the plan
@@ -150,13 +150,13 @@ func attachPaymentMethodToStripeCustomer(c string, paymentMethodId string, price
 	subscriptionParams.AddExpand("latest_invoice.payment_intent")
 	ser, err := sub.New(subscriptionParams)
 	if err != nil {
-		logrus.WithError(err).WithField("customer", c).Error("unable to create subscription")
+		logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error("unable to create subscription")
 		return nil, errorx.InternalError.Wrap(err, "unable to create subscription")
 	}
 	logrus.WithFields(logrus.Fields{
-		"stripe.subscription": logger.PrintStruct(ser),
-		"customer":            c,
-		"subscriptionId":      ser.ID,
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(ser),
+		LOG_PARAM_SUBSCRIPTION_ID: ser.ID,
+		LOG_PARAM_CUSTOMER_ID:     c,
 	}).Debug("subscription done")
 
 	return ser, nil

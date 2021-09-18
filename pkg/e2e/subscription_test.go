@@ -141,6 +141,79 @@ var _ = Describe("Subscription e2e", func() {
 		Expect(isActive).To(BeFalse())
 	})
 
+	It("I should be able to retry when payment is not successful", func() {
+
+		responseInit := initSubscription()
+		accountID, _ := ask.For(responseInit, "subscription_init.account_id").String("")
+
+		responseCreate := createSubscription(accountID, "4000002760003184", "01", "2030", "314")
+		isActiveCreate, _ := ask.For(responseCreate, "subscription_create.is_active").Bool(true)
+		accountCreate, _ := ask.For(responseCreate, "subscription_create.account_id").String("account_id_create")
+
+		bodyRetry := map[string]interface{}{}
+		err := graphqlService.Execute(
+			context.Background(),
+			fmt.Sprintf(`
+			mutation RetrySubscription {
+				subscription_retry ( data: { payment_method_id: "%0s" } ) {
+					account_id,
+					is_active
+				}
+			}`, createPaymentMethod("4242424242424242", "01", "2030", "314")),
+			[]gqlreq.RequestHeader{
+				{Key: "x-hasura-account-id", Value: accountID},
+				{Key: "x-hasura-role", Value: "account_owner"},
+				{Key: "x-hasura-user-id", Value: "user1"},
+			},
+			[]gqlreq.RequestVar{},
+			true,
+			&bodyRetry,
+		)
+		isActiveRetry, _ := ask.For(bodyRetry, "subscription_retry.is_active").Bool(false)
+		accountRetry, _ := ask.For(bodyRetry, "subscription_retry.account_id").String("account_id_retry")
+
+		Expect(err).To(BeNil())
+		Expect(isActiveCreate).To(BeFalse())
+		Expect(isActiveRetry).To(BeTrue())
+		Expect(accountCreate).To(Equal(accountRetry))
+	})
+
+	It("I should be able to change an existing plan", func() {
+
+		responseInit := initSubscription()
+		accountID, _ := ask.For(responseInit, "subscription_init.account_id").String("")
+
+		responseCreate := createSubscription(accountID, "4242424242424242", "01", "2030", "314")
+		isActiveCreate, _ := ask.For(responseCreate, "subscription_create.is_active").Bool(false)
+		accountCreate, _ := ask.For(responseCreate, "subscription_create.account_id").String("account_id_create")
+
+		bodyChange := map[string]interface{}{}
+		err := graphqlService.Execute(
+			context.Background(),
+			`mutation ChangeSubscription {
+				subscription_change ( data: { id_plan: "premium" } ) {
+					account_id,
+					is_active
+				}
+			}`,
+			[]gqlreq.RequestHeader{
+				{Key: "x-hasura-account-id", Value: accountID},
+				{Key: "x-hasura-role", Value: "account_owner"},
+				{Key: "x-hasura-user-id", Value: "user1"},
+			},
+			[]gqlreq.RequestVar{},
+			true,
+			&bodyChange,
+		)
+		isActiveRetry, _ := ask.For(bodyChange, "subscription_change.is_active").Bool(false)
+		accountChange, _ := ask.For(bodyChange, "subscription_change.account_id").String("account_id_change")
+
+		Expect(err).To(BeNil())
+		Expect(isActiveCreate).To(BeTrue())
+		Expect(isActiveRetry).To(BeTrue())
+		Expect(accountCreate).To(Equal(accountChange))
+	})
+
 	It("I should be able to crete and cancel subscription", func() {
 
 		responseInit := initSubscription()

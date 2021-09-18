@@ -14,7 +14,13 @@ import (
 Updating Hasura subscriptio status information
 */
 func updateHasuraSubscription(ctx context.Context, sdkSvc gqlsdk.Service, accountId string, ser *stripe.Subscription) (*gqlsdk.MutationSetSubscriptioStatus, error) {
-	result, err := sdkSvc.SetSubscriptioStatus(ctx, string(ser.Status), string(ser.Status) == "active", accountId, ser.ID)
+
+	plan, err := getPlanFromStripePlan(ctx, sdkSvc, ser.Plan.ID)
+	if err != nil {
+		return nil, errorx.InternalError.Wrap(err, "unable to find plan while SetSubscriptioStatus")
+	}
+
+	result, err := sdkSvc.SetSubscriptioStatus(ctx, string(ser.Status), string(ser.Status) == "active", accountId, ser.ID, plan.SubscriptionPlan[0].ID)
 	if err != nil {
 		logrus.WithError(err).Error("not able to execute mutation SetSubscriptioStatus")
 		return nil, errorx.InternalError.Wrap(err, "unable to execute mutation SetSubscriptioStatus")

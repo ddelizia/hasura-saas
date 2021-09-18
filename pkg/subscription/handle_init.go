@@ -55,6 +55,12 @@ func (h *initHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, err = getStripePlanFromPlan(r.Context(), h.SdkSvc, actionPayload.Input.Data.IDPlan)
+	if err != nil {
+		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "plan not found"))
+		return
+	}
+
 	logrus.Debug("creating stripe customer")
 	c, err := h.createStripeCustomer(actionPayload.Input.Data.AccountName)
 	if err != nil {
@@ -91,13 +97,14 @@ func (s *initHandler) createStripeCustomer(accountName string) (*stripe.Customer
 	c, err := customer.New(&params)
 
 	if err != nil {
-		logrus.WithError(err).WithField("customer", c.ID).Error("unable to create customer")
+		logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c.ID).Error("unable to create customer")
 		return nil, errorx.InternalError.Wrap(err, "unable to create customer")
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"customer": logger.PrintStruct(c),
-		"account":  accountName,
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(c),
+		LOG_PARAM_CUSTOMER_ID:     c.ID,
+		LOG_PARAM_ACCOUNT_NAME:    accountName,
 	}).Info("stripe customer created")
 	return c, nil
 
@@ -123,7 +130,7 @@ func (h *initHandler) createCustomerSubscriptionOnHasura(ctx context.Context, a 
 	)
 
 	if err != nil {
-		logrus.WithError(err).WithField("user", az.UserId).Error("unable to create customer on hasura")
+		logrus.WithError(err).WithField(LOG_PARAM_USER_ID, az.UserId).Error("unable to create customer on hasura")
 		return nil, errorx.InternalError.Wrap(err, "unable to execute CreateSubscriptionCustomer")
 	}
 	return customer, nil

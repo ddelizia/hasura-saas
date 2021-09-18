@@ -119,6 +119,7 @@ type MutationSetSubscriptioStatus struct {
 		AffectedRows int64 "json:\"affected_rows\" graphql:\"affected_rows\""
 		Returning    []*struct {
 			IDAccount string "json:\"id_account\" graphql:\"id_account\""
+			IDPlan    string "json:\"id_plan\" graphql:\"id_plan\""
 			IsActive  bool   "json:\"is_active\" graphql:\"is_active\""
 			Status    string "json:\"status\" graphql:\"status\""
 		} "json:\"returning\" graphql:\"returning\""
@@ -139,8 +140,9 @@ type QueryGetAccountInfoForCreatingSubscription struct {
 			StripeCustomer string "json:\"stripe_customer\" graphql:\"stripe_customer\""
 		} "json:\"subscription_customer\" graphql:\"subscription_customer\""
 		SubscriptionStatus struct {
-			Status           string "json:\"status\" graphql:\"status\""
-			SubscriptionPlan struct {
+			Status               string  "json:\"status\" graphql:\"status\""
+			StripeSubscriptionID *string "json:\"stripe_subscription_id\" graphql:\"stripe_subscription_id\""
+			SubscriptionPlan     struct {
 				StripeCode *string "json:\"stripe_code\" graphql:\"stripe_code\""
 			} "json:\"subscription_plan\" graphql:\"subscription_plan\""
 		} "json:\"subscription_status\" graphql:\"subscription_status\""
@@ -160,6 +162,16 @@ type QueryGetAccountFromSubscription struct {
 	SubscriptionStatus []*struct {
 		IDAccount string "json:\"id_account\" graphql:\"id_account\""
 	} "json:\"subscription_status\" graphql:\"subscription_status\""
+}
+type QueryGetStripePlanFromPlan struct {
+	SubscriptionPlan []*struct {
+		StripeCode *string "json:\"stripe_code\" graphql:\"stripe_code\""
+	} "json:\"subscription_plan\" graphql:\"subscription_plan\""
+}
+type QueryGetPlanFromStripePlan struct {
+	SubscriptionPlan []*struct {
+		ID string "json:\"id\" graphql:\"id\""
+	} "json:\"subscription_plan\" graphql:\"subscription_plan\""
 }
 
 const CreateSubscriptionCustomerDocument = `mutation CreateSubscriptionCustomer ($name: String!, $id_plan: String!, $id_user: String!, $stripe_customer: String!, $status: String!, $id_role: String!) {
@@ -190,11 +202,12 @@ func (c *Client) CreateSubscriptionCustomer(ctx context.Context, name string, id
 	return &res, nil
 }
 
-const SetSubscriptioStatusDocument = `mutation SetSubscriptioStatus ($status: String!, $is_active: Boolean!, $accountId: uuid!, $stripe_subscription_id: String!) {
-	update_subscription_status(where: {id_account:{_eq:$accountId}}, _set: {status:$status,is_active:$is_active,stripe_subscription_id:$stripe_subscription_id}) {
+const SetSubscriptioStatusDocument = `mutation SetSubscriptioStatus ($status: String!, $is_active: Boolean!, $accountId: uuid!, $stripe_subscription_id: String!, $id_plan: String!) {
+	update_subscription_status(where: {id_account:{_eq:$accountId}}, _set: {status:$status,id_plan:$id_plan,is_active:$is_active,stripe_subscription_id:$stripe_subscription_id}) {
 		affected_rows
 		returning {
 			id_account
+			id_plan
 			is_active
 			status
 		}
@@ -202,12 +215,13 @@ const SetSubscriptioStatusDocument = `mutation SetSubscriptioStatus ($status: St
 }
 `
 
-func (c *Client) SetSubscriptioStatus(ctx context.Context, status string, isActive bool, accountID string, stripeSubscriptionID string, interceptors ...clientv2.RequestInterceptor) (*MutationSetSubscriptioStatus, error) {
+func (c *Client) SetSubscriptioStatus(ctx context.Context, status string, isActive bool, accountID string, stripeSubscriptionID string, idPlan string, interceptors ...clientv2.RequestInterceptor) (*MutationSetSubscriptioStatus, error) {
 	vars := map[string]interface{}{
 		"status":                 status,
 		"is_active":              isActive,
 		"accountId":              accountID,
 		"stripe_subscription_id": stripeSubscriptionID,
+		"id_plan":                idPlan,
 	}
 
 	var res MutationSetSubscriptioStatus
@@ -250,6 +264,7 @@ const GetAccountInfoForCreatingSubscriptionDocument = `query GetAccountInfoForCr
 		}
 		subscription_status {
 			status
+			stripe_subscription_id
 			subscription_plan {
 				stripe_code
 			}
@@ -326,6 +341,46 @@ func (c *Client) GetAccountFromSubscription(ctx context.Context, stripeSubscript
 
 	var res QueryGetAccountFromSubscription
 	if err := c.Client.Post(ctx, "GetAccountFromSubscription", GetAccountFromSubscriptionDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetStripePlanFromPlanDocument = `query GetStripePlanFromPlan ($id: String!) {
+	subscription_plan(where: {id:{_eq:$id},is_active:{_eq:true}}) {
+		stripe_code
+	}
+}
+`
+
+func (c *Client) GetStripePlanFromPlan(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*QueryGetStripePlanFromPlan, error) {
+	vars := map[string]interface{}{
+		"id": id,
+	}
+
+	var res QueryGetStripePlanFromPlan
+	if err := c.Client.Post(ctx, "GetStripePlanFromPlan", GetStripePlanFromPlanDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetPlanFromStripePlanDocument = `query GetPlanFromStripePlan ($stripe_code: String!) {
+	subscription_plan(where: {stripe_code:{_eq:$stripe_code},is_active:{_eq:true}}) {
+		id
+	}
+}
+`
+
+func (c *Client) GetPlanFromStripePlan(ctx context.Context, stripeCode string, interceptors ...clientv2.RequestInterceptor) (*QueryGetPlanFromStripePlan, error) {
+	vars := map[string]interface{}{
+		"stripe_code": stripeCode,
+	}
+
+	var res QueryGetPlanFromStripePlan
+	if err := c.Client.Post(ctx, "GetPlanFromStripePlan", GetPlanFromStripePlanDocument, &res, vars, interceptors...); err != nil {
 		return nil, err
 	}
 

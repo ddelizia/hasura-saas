@@ -37,6 +37,6 @@ func WriteError(res http.ResponseWriter, e error) {
 			Error string `json:"error"`
 		}{Error: e.Error()})
 	} else {
-		WriteResponse(res, 500, struct{ Error string }{Error: "internal server error"})
+		WriteResponse(res, 500, struct{ Error string }{Error: e.Error()})
 	}
 }

@@ -50,7 +50,6 @@ func main() {
 			hshttp.MiddlewareSetContentTypeApplicationJson,
 		)).Methods("POST")
 
-	// TODO not ready yet
 	handlerRetry := subscription.NewRetryHandler(graphqlSevice, sdkService)
 	r.Handle("/retry",
 		hshttp.MiddlewareChain(
@@ -59,7 +58,14 @@ func main() {
 			hshttp.MiddlewareSetContentTypeApplicationJson,
 		)).Methods("POST")
 
-	// TODO not ready yet
+	handlerChange := subscription.NewChangeHandler(graphqlSevice, sdkService)
+	r.Handle("/change",
+		hshttp.MiddlewareChain(
+			handlerChange.ServeHTTP,
+			hshttp.MiddlewareLogRequest,
+			hshttp.MiddlewareSetContentTypeApplicationJson,
+		)).Methods("POST")
+
 	handlerWebhook := subscription.NewWebhookHandler(sdkService)
 	r.Handle("/webhook", handlerWebhook).Methods("POST")
 

@@ -2,7 +2,7 @@
 
 set -e
 
-VERSION="v0.0.1-alpha.2"
+VERSION="v0.0.1-alpha.3"
 
 download () {
   FILE=$1

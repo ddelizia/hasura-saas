@@ -87,16 +87,16 @@ Retrieving the stripe subscription id from hasura
 func (h *CancelHandler) getStripeSubscriptionID(ctx context.Context, accountID string) (string, error) {
 	result, err := h.SdkSvc.GetStripeSubscription(ctx, accountID)
 	if err != nil {
-		logrus.WithError(err).WithField("account", accountID).Error("not able to execute GetStripeSubscription")
+		logrus.WithError(err).WithField(LOG_PARAM_ACCOUNT_ID, accountID).Error("not able to execute GetStripeSubscription")
 		return "", errorx.InternalError.Wrap(err, "not able to execute GetStripeSubscription")
 	}
 
 	if len(result.SubscriptionStatus) != 1 {
-		logrus.WithField("wrong.result.length", len(result.SubscriptionStatus)).Error("hasura GetStripeSubscription has returned wrong amount of results")
+		logrus.WithField(LOG_PARAM_RESULT_LENGTH, len(result.SubscriptionStatus)).Error("hasura GetStripeSubscription has returned wrong amount of results")
 		return "", errorx.InternalError.Wrap(err, "subscription not able to cancelled, contact us")
 	}
 
-	logrus.WithField("result", logger.PrintStruct(result)).Debug("GetStripeSubscription result")
+	logrus.WithField(LOG_PARAM_HASURA_RESPONSE, logger.PrintStruct(result)).Debug("GetStripeSubscription result")
 
 	return *result.SubscriptionStatus[0].StripeSubscriptionID, nil
 }
@@ -108,15 +108,15 @@ func (h *CancelHandler) cancelStripeSubscription(accountID string, stripeSubscri
 	subscriptionCancel, err := sub.Cancel(stripeSubscriptioId, nil)
 	if err != nil {
 		logrus.WithError(err).WithFields(logrus.Fields{
-			"account":               accountID,
-			"stripe.subscriptionid": stripeSubscriptioId,
+			LOG_PARAM_ACCOUNT_ID:      accountID,
+			LOG_PARAM_SUBSCRIPTION_ID: stripeSubscriptioId,
 		}).Error("unable to cancel subscription")
 		return nil, errorx.InternalError.Wrap(err, "unable to process cancel request with the provider")
 	}
 	logrus.WithFields(logrus.Fields{
-		"stripe.subscription.cancel": logger.PrintStruct(subscriptionCancel),
-		"account":                    accountID,
-		"stripe.subscriptionid":      stripeSubscriptioId,
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(subscriptionCancel),
+		LOG_PARAM_ACCOUNT_ID:      accountID,
+		LOG_PARAM_SUBSCRIPTION_ID: stripeSubscriptioId,
 	}).Debug("subscription done")
 
 	return subscriptionCancel, nil

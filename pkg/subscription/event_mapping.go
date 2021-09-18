@@ -12,38 +12,39 @@ import (
 
 func EventMapping(c context.Context, event stripe.Event, id string, sdkSvc gqlsdk.Service) {
 	switch event.Type {
-
+	
+	
 	case "charge.succeeded":
-		ProcessChargeSucceeded(event, id)
+		ProcessChargeSucceeded(c, event, id, sdkSvc)
 	case "customer.created":
-		ProcessCustomerCreated(event, id)
+		ProcessCustomerCreated(c, event, id, sdkSvc)
 	case "customer.subscription.created":
-		ProcessCustomerSubscriptionCreated(event, id)
+		ProcessCustomerSubscriptionCreated(c, event, id, sdkSvc)
 	case "customer.subscription.deleted":
-		ProcessCustomerSubscriptionDeleted(event, id)
+		ProcessCustomerSubscriptionDeleted(c, event, id, sdkSvc)
 	case "customer.updated":
-		ProcessCustomerUpdated(event, id)
+		ProcessCustomerUpdated(c, event, id, sdkSvc)
 	case "invoice.created":
-		ProcessInvoiceCreated(event, id)
+		ProcessInvoiceCreated(c, event, id, sdkSvc)
 	case "invoice.finalized":
-		ProcessInvoiceFinalized(event, id)
+		ProcessInvoiceFinalized(c, event, id, sdkSvc)
 	case "invoice.paid":
-		ProcessInvoicePaid(event, id)
+		ProcessInvoicePaid(c, event, id, sdkSvc)
 	case "invoice.payment_action_required":
-		ProcessInvoicePaymentActionRequired(event, id)
+		ProcessInvoicePaymentActionRequired(c, event, id, sdkSvc)
 	case "invoice.payment_failed":
 		ProcessInvoicePaymentFailed(c, event, id, sdkSvc)
 	case "invoice.payment_succeeded":
-		ProcessInvoicePaymentSucceeded(event, id)
+		ProcessInvoicePaymentSucceeded(c, event, id, sdkSvc)
 	case "payment_intent.created":
-		ProcessPaymentIntentCreated(event, id)
+		ProcessPaymentIntentCreated(c, event, id, sdkSvc)
 	case "payment_intent.requires_action":
-		ProcessPaymentIntentRequiresAction(event, id)
+		ProcessPaymentIntentRequiresAction(c, event, id, sdkSvc)
 	case "payment_intent.succeeded":
-		ProcessPaymentIntentSucceeded(event, id)
+		ProcessPaymentIntentSucceeded(c, event, id, sdkSvc)
 	case "payment_method.attached":
-		ProcessPaymentMethodAttached(event, id)
-
+		ProcessPaymentMethodAttached(c, event, id, sdkSvc)
+	
 	default:
 		// unhandled event type
 		logrus.WithField("eventType", event.Type).Warn("event not mapped")
