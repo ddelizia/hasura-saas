@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ./scripts/hasura-download-schema.sh
 
 docker-compose up -d

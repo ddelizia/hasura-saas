@@ -29,11 +29,19 @@ mutation CreateSubscriptionCustomer($name: String!, $id_plan: String!, $id_user:
 }
 
 ## Subscription
-mutation SetSubscriptioStatus($status: String!, $is_active: Boolean!, $accountId: uuid!, $stripe_subscription_id: String!) {
-  update_subscription_status(where: {id_account: {_eq: $accountId}}, _set: {status: $status, is_active: $is_active, stripe_subscription_id: $stripe_subscription_id}) {
+mutation SetSubscriptioStatus($status: String!, $is_active: Boolean!, $accountId: uuid!, $stripe_subscription_id: String!, $id_plan: String!) {
+  update_subscription_status(
+		where: {id_account: {_eq: $accountId}}, 
+		_set: {
+			status: $status, 
+			id_plan: $id_plan,
+			is_active: $is_active, 
+			stripe_subscription_id: $stripe_subscription_id
+			}) {
     affected_rows
 		returning {
       id_account
+			id_plan
       is_active
       status
     }

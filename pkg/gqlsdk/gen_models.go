@@ -25,6 +25,15 @@ type CancelSubscriptionOutput struct {
 	Status string `json:"status"`
 }
 
+type ChangeSubscriptionInput struct {
+	IDPlan string `json:"id_plan"`
+}
+
+type ChangeSubscriptionOutput struct {
+	AccountID string `json:"account_id"`
+	IsActive  bool   `json:"is_active"`
+}
+
 type CreateSubscriptionInput struct {
 	PaymentMethodID string `json:"payment_method_id"`
 }

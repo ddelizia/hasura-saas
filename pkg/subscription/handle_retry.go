@@ -65,7 +65,6 @@ func (h *RetryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ser, err := h.retrySubscriptionOnStripe(
 		accountInfoForCreatingSubscription.SaasAccount[0].SubscriptionCustomer.StripeCustomer,
 		actionPayload.Input.Data.PaymentMethodID,
-		"", //TODO invoice should be placed here
 	)
 	if err != nil {
 		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "unable to assign the new payment method with the payment provider"))
@@ -90,72 +89,114 @@ func (h *RetryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "not able to create response"))
 		return
 	}
+
+	logrus.WithFields(logrus.Fields{
+		LOG_PARAM_ACCOUNT_ID:      authzInfo.AccountId,
+		LOG_PARAM_SUBSCRIPTION_ID: ser.ID,
+		LOG_PARAM_CUSTOMER_ID:     ser.Customer.ID,
+		LOG_PARAM_PLAN_ID:         ser.Plan.ID,
+	}).Info("subscription retry done")
 }
 
-func (h *RetryHandler) retrySubscriptionOnStripe(c string, paymentMethodId string, invoiceId string) (*stripe.Subscription, error) {
-	// Attach PaymentMethod
-	params := &stripe.PaymentMethodAttachParams{
+func (h *RetryHandler) retrySubscriptionOnStripe(c string, paymentMethodId string) (*stripe.Subscription, error) {
+	// Get latest invoice for customer
+	prevI := invoice.List(&stripe.InvoiceListParams{
 		Customer: stripe.String(c),
+	})
+	var prevIn *stripe.Invoice
+	if prevI.Next() {
+		prevIn = prevI.Invoice()
+	} else {
+		logrus.WithFields(logrus.Fields{
+			LOG_PARAM_CUSTOMER_ID: c,
+		}).Error("no invoice found")
+		return nil, errorx.InternalError.New("not able to find the last invoice")
 	}
+	logrus.WithFields(logrus.Fields{
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(prevIn),
+		LOG_PARAM_INVOICE_ID:      prevIn.ID,
+		LOG_PARAM_CUSTOMER_ID:     c,
+	}).Debug("retrieved invoice")
+
+	// Attach PaymentMethod
 	pm, err := paymentmethod.Attach(
 		paymentMethodId,
-		params,
+		&stripe.PaymentMethodAttachParams{
+			Customer: stripe.String(c),
+		},
 	)
 	if err != nil {
-		logrus.WithError(err).WithField("customer", c).Error(fmt.Sprintf("paymentmethod.Attach: %v %s", err, pm.ID))
+		logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error(fmt.Sprintf("paymentmethod.Attach: %v %s", err, pm.ID))
 		return nil, errorx.InternalError.Wrap(err, "unable to execute retry request to the payment provider")
 	}
 	logrus.WithFields(logrus.Fields{
-		"stripe.attach": logger.PrintStruct(pm),
-		"customer":      c,
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(pm),
+		LOG_PARAM_INVOICE_ID:      prevIn.ID,
+		LOG_PARAM_CUSTOMER_ID:     c,
 	}).Debug("payment attached")
 
 	// Update invoice settings default
-	customerParams := &stripe.CustomerParams{
-		InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
-			DefaultPaymentMethod: stripe.String(pm.ID),
-		},
-	}
 	updatedCustomer, err := customer.Update(
 		c,
-		customerParams,
+		&stripe.CustomerParams{
+			InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
+				DefaultPaymentMethod: stripe.String(pm.ID),
+			},
+		},
 	)
 	if err != nil {
-		logrus.WithError(err).WithField("customer", c).Error("unable to update customer invoice")
+		logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error("unable to update customer invoice")
 		return nil, errorx.InternalError.Wrap(err, "unable to update invoice settings on the provider")
 	}
 	logrus.WithFields(logrus.Fields{
-		"stripe.customer.updated": logger.PrintStruct(updatedCustomer),
-		"customer":                c,
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(updatedCustomer),
+		LOG_PARAM_INVOICE_ID:      prevIn.ID,
+		LOG_PARAM_CUSTOMER_ID:     c,
 	}).Debug("default payment method for customer updated")
 
 	// Retrieve Invoice
 	invoiceParams := &stripe.InvoiceParams{}
 	invoiceParams.AddExpand("payment_intent")
 	in, err := invoice.Get(
-		invoiceId,
+		prevIn.ID,
 		invoiceParams,
 	)
 	if err != nil {
-		logrus.WithError(err).WithField("customer", c).Error("unable to retrieve invoice")
+		logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error("unable to retrieve invoice")
 		return nil, errorx.InternalError.Wrap(err, "unable to retrive the invoice from the payment provider")
 	}
 	logrus.WithFields(logrus.Fields{
-		"stripe.invoice": logger.PrintStruct(in),
-		"customer":       c,
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(in),
+		LOG_PARAM_INVOICE_ID:      prevIn.ID,
+		LOG_PARAM_CUSTOMER_ID:     c,
 	}).Debug("invoice id updated")
 
+	// Pay invoice Invoice
+	inPay, err := invoice.Pay(
+		prevIn.ID,
+		&stripe.InvoicePayParams{},
+	)
+	if err != nil {
+		logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error("unable to pay invoice")
+		return nil, errorx.InternalError.Wrap(err, "unable to invoice")
+	}
+	logrus.WithFields(logrus.Fields{
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(inPay),
+		LOG_PARAM_INVOICE_ID:      prevIn.ID,
+		LOG_PARAM_CUSTOMER_ID:     c,
+	}).Debug("invoice paid")
+
 	// Getting subscription
-	subscriptionParams := &stripe.SubscriptionParams{}
-	ser, err := sub.Get(in.Subscription.ID, subscriptionParams)
+	ser, err := sub.Get(in.Subscription.ID, &stripe.SubscriptionParams{})
 	if err != nil {
 		logrus.WithError(err).WithField("customer", c).Error("unable to get subscription")
 		return nil, errorx.InternalError.Wrap(err, "unable to get subscription")
 	}
 	logrus.WithFields(logrus.Fields{
-		"stripe.subscription": logger.PrintStruct(ser),
-		"customer":            c,
-		"subscriptionId":      ser.ID,
+		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(ser),
+		LOG_PARAM_CUSTOMER_ID:     c,
+		LOG_PARAM_SUBSCRIPTION_ID: ser.ID,
+		LOG_PARAM_INVOICE_ID:      prevIn.ID,
 	}).Debug("subscription found")
 
 	return ser, nil

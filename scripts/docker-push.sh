@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 S_TAG=$1
 T_TAG=$2
 
