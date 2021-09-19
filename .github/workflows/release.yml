@@ -1,4 +1,4 @@
-name: ci
+name: Release Build
 on:
   push:
     tags:
@@ -10,7 +10,7 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  
+
   docker:
     name: Create docker image and publish
     runs-on: ubuntu-latest
@@ -22,11 +22,33 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: true
+    
     - name: Build docker images
       run: ./scripts/docker-build.sh $GITHUB_SHA
 
     - name: Log docker images
       run: ./scripts/docker-push.sh $GITHUB_SHA ${GITHUB_REF#refs/tags/}
+    
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: true
+        prerelease: true
 
   go-list:
     name: Create go package

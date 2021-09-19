@@ -48,8 +48,6 @@ type QueryRoot struct {
 	SubscriptionStatusByPk          *SubscriptionStatus             "json:\"subscription_status_by_pk\" graphql:\"subscription_status_by_pk\""
 }
 type MutationRoot struct {
-	CancelSubscription              *CancelSubscriptionOutput               "json:\"cancel_subscription\" graphql:\"cancel_subscription\""
-	CreateSubscription              *CreateSubscriptionOutput               "json:\"create_subscription\" graphql:\"create_subscription\""
 	DeleteSaasAccount               *SaasAccountMutationResponse            "json:\"delete_saas_account\" graphql:\"delete_saas_account\""
 	DeleteSaasAccountByPk           *SaasAccount                            "json:\"delete_saas_account_by_pk\" graphql:\"delete_saas_account_by_pk\""
 	DeleteSaasAddress               *SaasAddressMutationResponse            "json:\"delete_saas_address\" graphql:\"delete_saas_address\""
@@ -67,7 +65,6 @@ type MutationRoot struct {
 	DeleteSubscriptionPlanByPk      *SubscriptionPlan                       "json:\"delete_subscription_plan_by_pk\" graphql:\"delete_subscription_plan_by_pk\""
 	DeleteSubscriptionStatus        *SubscriptionStatusMutationResponse     "json:\"delete_subscription_status\" graphql:\"delete_subscription_status\""
 	DeleteSubscriptionStatusByPk    *SubscriptionStatus                     "json:\"delete_subscription_status_by_pk\" graphql:\"delete_subscription_status_by_pk\""
-	InitSubscription                *InitSubscriptionOutput                 "json:\"init_subscription\" graphql:\"init_subscription\""
 	InsertSaasAccount               *SaasAccountMutationResponse            "json:\"insert_saas_account\" graphql:\"insert_saas_account\""
 	InsertSaasAccountOne            *SaasAccount                            "json:\"insert_saas_account_one\" graphql:\"insert_saas_account_one\""
 	InsertSaasAddress               *SaasAddressMutationResponse            "json:\"insert_saas_address\" graphql:\"insert_saas_address\""
@@ -86,7 +83,11 @@ type MutationRoot struct {
 	InsertSubscriptionPlanOne       *SubscriptionPlan                       "json:\"insert_subscription_plan_one\" graphql:\"insert_subscription_plan_one\""
 	InsertSubscriptionStatus        *SubscriptionStatusMutationResponse     "json:\"insert_subscription_status\" graphql:\"insert_subscription_status\""
 	InsertSubscriptionStatusOne     *SubscriptionStatus                     "json:\"insert_subscription_status_one\" graphql:\"insert_subscription_status_one\""
-	RetrySubscription               *RetrySubscriptionOutput                "json:\"retry_subscription\" graphql:\"retry_subscription\""
+	SubscriptionCancel              *CancelSubscriptionOutput               "json:\"subscription_cancel\" graphql:\"subscription_cancel\""
+	SubscriptionChange              *ChangeSubscriptionOutput               "json:\"subscription_change\" graphql:\"subscription_change\""
+	SubscriptionCreate              *CreateSubscriptionOutput               "json:\"subscription_create\" graphql:\"subscription_create\""
+	SubscriptionInit                *InitSubscriptionOutput                 "json:\"subscription_init\" graphql:\"subscription_init\""
+	SubscriptionRetry               *RetrySubscriptionOutput                "json:\"subscription_retry\" graphql:\"subscription_retry\""
 	UpdateSaasAccount               *SaasAccountMutationResponse            "json:\"update_saas_account\" graphql:\"update_saas_account\""
 	UpdateSaasAccountByPk           *SaasAccount                            "json:\"update_saas_account_by_pk\" graphql:\"update_saas_account_by_pk\""
 	UpdateSaasAddress               *SaasAddressMutationResponse            "json:\"update_saas_address\" graphql:\"update_saas_address\""
@@ -118,6 +119,7 @@ type MutationSetSubscriptioStatus struct {
 		AffectedRows int64 "json:\"affected_rows\" graphql:\"affected_rows\""
 		Returning    []*struct {
 			IDAccount string "json:\"id_account\" graphql:\"id_account\""
+			IDPlan    string "json:\"id_plan\" graphql:\"id_plan\""
 			IsActive  bool   "json:\"is_active\" graphql:\"is_active\""
 			Status    string "json:\"status\" graphql:\"status\""
 		} "json:\"returning\" graphql:\"returning\""
@@ -138,8 +140,9 @@ type QueryGetAccountInfoForCreatingSubscription struct {
 			StripeCustomer string "json:\"stripe_customer\" graphql:\"stripe_customer\""
 		} "json:\"subscription_customer\" graphql:\"subscription_customer\""
 		SubscriptionStatus struct {
-			Status           string "json:\"status\" graphql:\"status\""
-			SubscriptionPlan struct {
+			Status               string  "json:\"status\" graphql:\"status\""
+			StripeSubscriptionID *string "json:\"stripe_subscription_id\" graphql:\"stripe_subscription_id\""
+			SubscriptionPlan     struct {
 				StripeCode *string "json:\"stripe_code\" graphql:\"stripe_code\""
 			} "json:\"subscription_plan\" graphql:\"subscription_plan\""
 		} "json:\"subscription_status\" graphql:\"subscription_status\""
@@ -154,6 +157,21 @@ type QueryGetStripeSubscription struct {
 	SubscriptionStatus []*struct {
 		StripeSubscriptionID *string "json:\"stripe_subscription_id\" graphql:\"stripe_subscription_id\""
 	} "json:\"subscription_status\" graphql:\"subscription_status\""
+}
+type QueryGetAccountFromSubscription struct {
+	SubscriptionStatus []*struct {
+		IDAccount string "json:\"id_account\" graphql:\"id_account\""
+	} "json:\"subscription_status\" graphql:\"subscription_status\""
+}
+type QueryGetStripePlanFromPlan struct {
+	SubscriptionPlan []*struct {
+		StripeCode *string "json:\"stripe_code\" graphql:\"stripe_code\""
+	} "json:\"subscription_plan\" graphql:\"subscription_plan\""
+}
+type QueryGetPlanFromStripePlan struct {
+	SubscriptionPlan []*struct {
+		ID string "json:\"id\" graphql:\"id\""
+	} "json:\"subscription_plan\" graphql:\"subscription_plan\""
 }
 
 const CreateSubscriptionCustomerDocument = `mutation CreateSubscriptionCustomer ($name: String!, $id_plan: String!, $id_user: String!, $stripe_customer: String!, $status: String!, $id_role: String!) {
@@ -184,11 +202,12 @@ func (c *Client) CreateSubscriptionCustomer(ctx context.Context, name string, id
 	return &res, nil
 }
 
-const SetSubscriptioStatusDocument = `mutation SetSubscriptioStatus ($status: String!, $is_active: Boolean!, $accountId: uuid!, $stripe_subscription_id: String!) {
-	update_subscription_status(where: {id_account:{_eq:$accountId}}, _set: {status:$status,is_active:$is_active,stripe_subscription_id:$stripe_subscription_id}) {
+const SetSubscriptioStatusDocument = `mutation SetSubscriptioStatus ($status: String!, $is_active: Boolean!, $accountId: uuid!, $stripe_subscription_id: String!, $id_plan: String!) {
+	update_subscription_status(where: {id_account:{_eq:$accountId}}, _set: {status:$status,id_plan:$id_plan,is_active:$is_active,stripe_subscription_id:$stripe_subscription_id}) {
 		affected_rows
 		returning {
 			id_account
+			id_plan
 			is_active
 			status
 		}
@@ -196,12 +215,13 @@ const SetSubscriptioStatusDocument = `mutation SetSubscriptioStatus ($status: St
 }
 `
 
-func (c *Client) SetSubscriptioStatus(ctx context.Context, status string, isActive bool, accountID string, stripeSubscriptionID string, interceptors ...clientv2.RequestInterceptor) (*MutationSetSubscriptioStatus, error) {
+func (c *Client) SetSubscriptioStatus(ctx context.Context, status string, isActive bool, accountID string, stripeSubscriptionID string, idPlan string, interceptors ...clientv2.RequestInterceptor) (*MutationSetSubscriptioStatus, error) {
 	vars := map[string]interface{}{
 		"status":                 status,
 		"is_active":              isActive,
 		"accountId":              accountID,
 		"stripe_subscription_id": stripeSubscriptionID,
+		"id_plan":                idPlan,
 	}
 
 	var res MutationSetSubscriptioStatus
@@ -244,6 +264,7 @@ const GetAccountInfoForCreatingSubscriptionDocument = `query GetAccountInfoForCr
 		}
 		subscription_status {
 			status
+			stripe_subscription_id
 			subscription_plan {
 				stripe_code
 			}
@@ -300,6 +321,66 @@ func (c *Client) GetStripeSubscription(ctx context.Context, idAccount string, in
 
 	var res QueryGetStripeSubscription
 	if err := c.Client.Post(ctx, "GetStripeSubscription", GetStripeSubscriptionDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetAccountFromSubscriptionDocument = `query GetAccountFromSubscription ($stripe_subscription_id: String!) {
+	subscription_status(where: {stripe_subscription_id:{_eq:$stripe_subscription_id}}) {
+		id_account
+	}
+}
+`
+
+func (c *Client) GetAccountFromSubscription(ctx context.Context, stripeSubscriptionID string, interceptors ...clientv2.RequestInterceptor) (*QueryGetAccountFromSubscription, error) {
+	vars := map[string]interface{}{
+		"stripe_subscription_id": stripeSubscriptionID,
+	}
+
+	var res QueryGetAccountFromSubscription
+	if err := c.Client.Post(ctx, "GetAccountFromSubscription", GetAccountFromSubscriptionDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetStripePlanFromPlanDocument = `query GetStripePlanFromPlan ($id: String!) {
+	subscription_plan(where: {id:{_eq:$id},is_active:{_eq:true}}) {
+		stripe_code
+	}
+}
+`
+
+func (c *Client) GetStripePlanFromPlan(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*QueryGetStripePlanFromPlan, error) {
+	vars := map[string]interface{}{
+		"id": id,
+	}
+
+	var res QueryGetStripePlanFromPlan
+	if err := c.Client.Post(ctx, "GetStripePlanFromPlan", GetStripePlanFromPlanDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetPlanFromStripePlanDocument = `query GetPlanFromStripePlan ($stripe_code: String!) {
+	subscription_plan(where: {stripe_code:{_eq:$stripe_code},is_active:{_eq:true}}) {
+		id
+	}
+}
+`
+
+func (c *Client) GetPlanFromStripePlan(ctx context.Context, stripeCode string, interceptors ...clientv2.RequestInterceptor) (*QueryGetPlanFromStripePlan, error) {
+	vars := map[string]interface{}{
+		"stripe_code": stripeCode,
+	}
+
+	var res QueryGetPlanFromStripePlan
+	if err := c.Client.Post(ctx, "GetPlanFromStripePlan", GetPlanFromStripePlanDocument, &res, vars, interceptors...); err != nil {
 		return nil, err
 	}
 

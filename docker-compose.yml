@@ -69,8 +69,6 @@ services:
     - ./cmd/:/app/cmd/:ro
     - ./pkg/:/app/pkg/:ro
     environment: 
-      SUBSCRIPTION.STRIPE.APIKEY: ${STRIPE_KEY}
-      SUBSCRIPTION.STRIPE.WEBHOOKSECRET: ${STRIPE_WEBHOOK_SECRET}
       GRAPHQL.HASURA.ADMINSECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
       GRAPHQL.URL: "http://graphql-engine:8080/v1/graphql"
       LOGGER.LEVEL: "debug"
