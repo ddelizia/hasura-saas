@@ -85,6 +85,11 @@ func (h *initHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "not able to create response"))
 		return
 	}
+
+	logrus.WithFields(logrus.Fields{
+		LOG_PARAM_ACCOUNT_ID:  authzInfo.AccountId,
+		LOG_PARAM_CUSTOMER_ID: c.ID,
+	}).Info("subscription init done")
 }
 
 /*

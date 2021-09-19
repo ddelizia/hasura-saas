@@ -1,7 +1,6 @@
 package subscription
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/ddelizia/hasura-saas/pkg/gqlreq"
@@ -113,35 +112,15 @@ func (h *ChangeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logrus.Debug("getting subscription information on stripe")
-	s, err := sub.Get(subscription.subscriptionId, nil)
+	logrus.Debug("update subscription on stripe")
+	ser, err := h.updateStripeSubscription(subscription.subscriptionId, plan.planId)
 	if err != nil {
-
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("sub.Get: %v", err)
-		return
-	}
-
-	logrus.Debug("updating subscription on stripe")
-	updatedSubscription, err := sub.Update(
-		subscription.subscriptionId,
-		&stripe.SubscriptionParams{
-			CancelAtPeriodEnd: stripe.Bool(false),
-			Items: []*stripe.SubscriptionItemsParams{{
-				ID:   stripe.String(s.Items.Data[0].ID),
-				Plan: stripe.String(plan.planId),
-			}},
-		},
-	)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("sub.Update: %v", err)
+		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "unable to update information"))
 		return
 	}
 
 	logrus.Debug("create subscription on hasura")
-	updatedStatus, err := updateHasuraSubscription(r.Context(), h.SdkSvc, subscription.authzInfo.AccountId, updatedSubscription)
+	updatedStatus, err := updateHasuraSubscription(r.Context(), h.SdkSvc, subscription.authzInfo.AccountId, ser)
 	if err != nil {
 		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "unable to store subscription information"))
 		return
@@ -159,4 +138,42 @@ func (h *ChangeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logrus.WithFields(logrus.Fields{
+		LOG_PARAM_ACCOUNT_ID:      subscription.authzInfo.AccountId,
+		LOG_PARAM_SUBSCRIPTION_ID: ser.ID,
+		LOG_PARAM_CUSTOMER_ID:     ser.Customer.ID,
+		LOG_PARAM_PLAN_ID:         ser.Plan.ID,
+	}).Info("subscription change done")
+}
+
+/*
+Update subscription on stripe
+* Get subscription information
+* Update subscription plan
+*/
+func (h *ChangeHandler) updateStripeSubscription(subscriptionId string, planId string) (*stripe.Subscription, error) {
+	logrus.Debug("getting subscription information from stripe")
+	s, err := sub.Get(subscriptionId, nil)
+	if err != nil {
+		logrus.WithError(err).WithField(LOG_PARAM_SUBSCRIPTION_ID, subscriptionId).Error("payment attachment failde")
+		return nil, errorx.InternalError.Wrap(err, "unable to retrieve subscription")
+	}
+
+	logrus.Debug("updating subscription on stripe")
+	updatedSubscription, err := sub.Update(
+		subscriptionId,
+		&stripe.SubscriptionParams{
+			CancelAtPeriodEnd: stripe.Bool(false),
+			Items: []*stripe.SubscriptionItemsParams{{
+				ID:   stripe.String(s.Items.Data[0].ID),
+				Plan: stripe.String(planId),
+			}},
+		},
+	)
+	if err != nil {
+		logrus.WithError(err).WithField(LOG_PARAM_SUBSCRIPTION_ID, subscriptionId).Error("not able to update subscription")
+		return nil, errorx.InternalError.Wrap(err, "unable to update subscription")
+	}
+
+	return updatedSubscription, nil
 }

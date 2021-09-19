@@ -89,6 +89,13 @@ func (h *RetryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "not able to create response"))
 		return
 	}
+
+	logrus.WithFields(logrus.Fields{
+		LOG_PARAM_ACCOUNT_ID:      authzInfo.AccountId,
+		LOG_PARAM_SUBSCRIPTION_ID: ser.ID,
+		LOG_PARAM_CUSTOMER_ID:     ser.Customer.ID,
+		LOG_PARAM_PLAN_ID:         ser.Plan.ID,
+	}).Info("subscription retry done")
 }
 
 func (h *RetryHandler) retrySubscriptionOnStripe(c string, paymentMethodId string) (*stripe.Subscription, error) {
