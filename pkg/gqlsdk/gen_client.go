@@ -24,6 +24,7 @@ type QueryRoot struct {
 	SaasAddress                     []*SaasAddress                  "json:\"saas_address\" graphql:\"saas_address\""
 	SaasAddressAggregate            SaasAddressAggregate            "json:\"saas_address_aggregate\" graphql:\"saas_address_aggregate\""
 	SaasAddressByPk                 *SaasAddress                    "json:\"saas_address_by_pk\" graphql:\"saas_address_by_pk\""
+	SaasGetCurrentAccount           *SaasGetCurrentAccountOutput    "json:\"saas_get_current_account\" graphql:\"saas_get_current_account\""
 	SaasMembership                  []*SaasMembership               "json:\"saas_membership\" graphql:\"saas_membership\""
 	SaasMembershipAggregate         SaasMembershipAggregate         "json:\"saas_membership_aggregate\" graphql:\"saas_membership_aggregate\""
 	SaasMembershipByPk              *SaasMembership                 "json:\"saas_membership_by_pk\" graphql:\"saas_membership_by_pk\""
@@ -181,6 +182,12 @@ type QueryGetPlanFromStripePlan struct {
 	SubscriptionPlan []*struct {
 		ID string "json:\"id\" graphql:\"id\""
 	} "json:\"subscription_plan\" graphql:\"subscription_plan\""
+}
+type QueryGetCurrentAccount struct {
+	SaasMembership []*struct {
+		IDAccount string "json:\"id_account\" graphql:\"id_account\""
+		IDRole    string "json:\"id_role\" graphql:\"id_role\""
+	} "json:\"saas_membership\" graphql:\"saas_membership\""
 }
 
 const CreateSubscriptionCustomerDocument = `mutation CreateSubscriptionCustomer ($name: String!, $id_plan: String!, $id_user: String!, $stripe_customer: String!, $status: String!, $id_role: String!) {
@@ -414,6 +421,27 @@ func (c *Client) GetPlanFromStripePlan(ctx context.Context, stripeCode string, i
 
 	var res QueryGetPlanFromStripePlan
 	if err := c.Client.Post(ctx, "GetPlanFromStripePlan", GetPlanFromStripePlanDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetCurrentAccountDocument = `query GetCurrentAccount ($user_id: String!) {
+	saas_membership(where: {id_user:{_eq:$user_id}}, limit: 1, order_by: {selected_at:desc_nulls_last}) {
+		id_account
+		id_role
+	}
+}
+`
+
+func (c *Client) GetCurrentAccount(ctx context.Context, userID string, interceptors ...clientv2.RequestInterceptor) (*QueryGetCurrentAccount, error) {
+	vars := map[string]interface{}{
+		"user_id": userID,
+	}
+
+	var res QueryGetCurrentAccount
+	if err := c.Client.Post(ctx, "GetCurrentAccount", GetCurrentAccountDocument, &res, vars, interceptors...); err != nil {
 		return nil, err
 	}
 

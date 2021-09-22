@@ -61,6 +61,15 @@ type RetrySubscriptionOutput struct {
 	IsActive  bool   `json:"is_active"`
 }
 
+type SaasGetCurrentAccountInput struct {
+	IDUser string `json:"id_user"`
+}
+
+type SaasGetCurrentAccountOutput struct {
+	IDAccount string `json:"id_account"`
+	IDRole    string `json:"id_role"`
+}
+
 type SaasSetCurrentAccountInput struct {
 	AccountID string `json:"account_id"`
 }

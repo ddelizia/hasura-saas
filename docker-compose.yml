@@ -80,6 +80,30 @@ services:
     - "go"
     - "run"
     - "./cmd/rp/main.go"
+  
+  hs-saas:
+    image: golang:1.16
+    depends_on: 
+    - graphql-engine
+    working_dir: /app
+    volumes:
+    - ./go.mod:/app/go.mod:ro
+    - ./go.sum:/app/go.sum:ro
+    - ./config.yaml:/app/config.yaml:ro
+    - ./cmd/:/app/cmd/:ro
+    - ./pkg/:/app/pkg/:ro
+    environment: 
+      GRAPHQL.HASURA.ADMINSECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+      GRAPHQL.URL: "http://graphql-engine:8080/v1/graphql"
+      LOGGER.LEVEL: "debug"
+    expose: 
+    - "1340"
+    ports: 
+    - "1342:1340"
+    command: 
+    - "go"
+    - "run"
+    - "./cmd/saas/main.go"
 
   stripe-cli:
     image: stripe/stripe-cli

@@ -15,3 +15,4 @@ build_docker () {
 
 build_docker rp
 build_docker subscription
+build_docker saas

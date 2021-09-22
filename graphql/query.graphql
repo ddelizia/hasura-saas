@@ -51,3 +51,11 @@ query GetPlanFromStripePlan ( $stripe_code: String!) {
     id
   }
 }
+
+## Saas
+query GetCurrentAccount ( $user_id: String!) {
+  saas_membership(where: {id_user: {_eq: $user_id}}, limit: 1, order_by: {selected_at: desc_nulls_last}) {
+    id_account
+    id_role
+  }
+}
