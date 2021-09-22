@@ -99,7 +99,7 @@ services:
     expose: 
     - "1340"
     ports: 
-    - "1342:1340"
+    - "1343:1340"
     command: 
     - "go"
     - "run"
