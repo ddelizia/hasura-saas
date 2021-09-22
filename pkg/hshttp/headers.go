@@ -3,6 +3,7 @@ package hshttp
 import (
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -37,4 +38,12 @@ func AccountHeaderName() string {
 
 func JwtHeaderName() string {
 	return ConfigJWTHeader()
+}
+
+func CleanHasuraSaasHeaders(r *http.Request) {
+	for k := range r.Header {
+		if strings.HasPrefix(strings.ToLower(k), "x-hasura-saas") {
+			r.Header.Del(k)
+		}
+	}
 }

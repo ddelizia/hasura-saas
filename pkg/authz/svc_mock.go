@@ -3,6 +3,7 @@ package authz
 type ServiceMock struct {
 	RoleGetterMock
 	UserGetterMock
+	AccountGetterMock
 	AuthInfoGetterMock
 }
 

@@ -16,4 +16,5 @@ type Service interface {
 	GetAccountFromSubscription(ctx context.Context, stripeSubscriptionID string, interceptors ...clientv2.RequestInterceptor) (*QueryGetAccountFromSubscription, error)
 	GetStripePlanFromPlan(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*QueryGetStripePlanFromPlan, error)
 	GetPlanFromStripePlan(ctx context.Context, stripeCode string, interceptors ...clientv2.RequestInterceptor) (*QueryGetPlanFromStripePlan, error)
+	SetAccountForUser(ctx context.Context, idAccount string, idUser string, interceptors ...clientv2.RequestInterceptor) (*MutationSetAccountForUser, error)
 }

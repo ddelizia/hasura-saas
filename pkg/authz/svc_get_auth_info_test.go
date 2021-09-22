@@ -1,14 +1,11 @@
 package authz_test
 
 import (
-	"context"
 	"errors"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/ddelizia/hasura-saas/pkg/authz"
-	"github.com/ddelizia/hasura-saas/pkg/hshttp"
-	"github.com/ddelizia/hasura-saas/pkg/hstest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
@@ -23,9 +20,10 @@ var _ = Describe("getAuthInfoImpl", func() {
 	)
 
 	var (
-		roleGetterMock *authz.RoleGetterMock
-		userGetterMock *authz.UserGetterMock
-		s              *authz.AuthInfoGetterImpl
+		roleGetterMock    *authz.RoleGetterMock
+		userGetterMock    *authz.UserGetterMock
+		accountGetterMock *authz.AccountGetterMock
+		s                 *authz.AuthInfoGetterImpl
 	)
 
 	mockGetRole := func(role string, err error, arguments ...interface{}) {
@@ -36,12 +34,18 @@ var _ = Describe("getAuthInfoImpl", func() {
 		userGetterMock.On("GetUser", arguments...).Return(user, err)
 	}
 
+	mockGetAccount := func(account string, err error, arguments ...interface{}) {
+		accountGetterMock.On("GetAccount", arguments...).Return(account, err)
+	}
+
 	BeforeEach(func() {
 		roleGetterMock = &authz.RoleGetterMock{}
 		userGetterMock = &authz.UserGetterMock{}
+		accountGetterMock = &authz.AccountGetterMock{}
 		s = &authz.AuthInfoGetterImpl{
-			UserGetter: userGetterMock,
-			RoleGetter: roleGetterMock,
+			UserGetter:    userGetterMock,
+			RoleGetter:    roleGetterMock,
+			AccountGetter: accountGetterMock,
 		}
 
 	})
@@ -49,11 +53,12 @@ var _ = Describe("getAuthInfoImpl", func() {
 	Context("GetAuthInfo()", func() {
 		It("should return data from role and user service", func() {
 			// Given
-			mockGetRole("role", nil, mock.Anything, mock.Anything, mock.Anything)
-			mockGetUser("user", nil, mock.Anything, mock.Anything)
+			mockGetUser("user", nil, mock.Anything)
+			mockGetRole("role", nil, mock.Anything)
+			mockGetAccount("account", nil, mock.Anything)
 
 			// When
-			got, err := s.GetAuthInfo(context.Background(), JWT, "account")
+			got, err := s.GetAuthInfo(&http.Request{})
 
 			// Then
 			Expect(err).To(BeNil())
@@ -61,17 +66,17 @@ var _ = Describe("getAuthInfoImpl", func() {
 				RoleId:    "role",
 				UserId:    "user",
 				AccountId: "account",
-				Jwt:       JWT,
 			}))
 		})
 
 		It("should throw an error when GetRole call returns an error", func() {
 			// Given
-			mockGetRole("", errors.New("some error"), mock.Anything, mock.Anything, mock.Anything)
-			mockGetUser("user", nil, mock.Anything, mock.Anything)
+			mockGetUser("user", nil, mock.Anything)
+			mockGetRole("", errors.New("some error"), mock.Anything)
+			mockGetAccount("account", nil, mock.Anything)
 
 			// When
-			_, err := s.GetAuthInfo(context.Background(), JWT, "account")
+			_, err := s.GetAuthInfo(&http.Request{})
 
 			// Then
 			Expect(err).To(Not(BeNil()))
@@ -79,64 +84,25 @@ var _ = Describe("getAuthInfoImpl", func() {
 
 		It("should throw an error when GetUser call returns an error", func() {
 			// Given
-			mockGetRole("role", nil, mock.Anything, mock.Anything, mock.Anything)
-			mockGetUser("", errors.New("some error"), mock.Anything, mock.Anything)
+			mockGetUser("", errors.New("some error"), mock.Anything)
+			mockGetRole("role", nil, mock.Anything)
+			mockGetAccount("account", nil, mock.Anything)
 
 			// When
-			_, err := s.GetAuthInfo(context.Background(), JWT, "account")
-
-			// Then
-			Expect(err).To(Not(BeNil()))
-		})
-	})
-
-	Context("GetAuthInfoFromRequest()", func() {
-
-		var req *http.Request
-
-		BeforeEach(func() {
-			req = hstest.CrerateRequest("POST", "/some/path", nil, nil)
-			req.Header.Set(hshttp.AccountHeaderName(), "account")
-			req.Header.Set(hshttp.JwtHeaderName(), JWT)
-		})
-
-		It("should return data from role and user service", func() {
-			// Given
-			mockGetRole("role", nil, mock.Anything, mock.Anything, mock.Anything)
-			mockGetUser("user", nil, mock.Anything, mock.Anything)
-
-			// When
-			got, err := s.GetAuthInfoFromRequest(req)
-
-			// Then
-			Expect(err).To(BeNil())
-			Expect(got).To(Equal(&authz.AuthzInfo{
-				RoleId:    "role",
-				UserId:    "user",
-				AccountId: "account",
-				Jwt:       JWT,
-			}))
-		})
-
-		It("should throw an error when GetRole call returns an error", func() {
-			// Given
-			mockGetRole("", errors.New("some error"), mock.Anything, mock.Anything, mock.Anything)
-			mockGetUser("user", nil, mock.Anything, mock.Anything)
-
-			// When
-			_, err := s.GetAuthInfoFromRequest(req)
+			_, err := s.GetAuthInfo(&http.Request{})
 
 			// Then
 			Expect(err).To(Not(BeNil()))
 		})
 
-		It("should throw an error when GetUser call returns an error", func() {
+		It("should throw an error when GetAccount call returns an error", func() {
 			// Given
-			mockGetRole("role", nil, mock.Anything, mock.Anything, mock.Anything)
-			mockGetUser("", errors.New("some error"), mock.Anything, mock.Anything)
+			mockGetUser("user", nil, mock.Anything)
+			mockGetRole("role", nil, mock.Anything)
+			mockGetAccount("", errors.New("some error"), mock.Anything)
 
 			// When
-			_, err := s.GetAuthInfoFromRequest(req)
+			_, err := s.GetAuthInfo(&http.Request{})
 
 			// Then
 			Expect(err).To(Not(BeNil()))

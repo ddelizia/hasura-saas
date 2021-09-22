@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 
 	"github.com/ddelizia/hasura-saas/pkg/authz"
-	"github.com/ddelizia/hasura-saas/pkg/gqlreq"
 	"github.com/ddelizia/hasura-saas/pkg/hshttp"
 	"github.com/ddelizia/hasura-saas/pkg/hstest"
 	"github.com/ddelizia/hasura-saas/pkg/rp"
@@ -64,20 +63,6 @@ var _ = Describe("handler_hasura.ServeHTTP()", func() {
 			Expect(req.Header.Get("X-Forwarded-Host")).Should(Equal(expectedHost))
 		})
 
-		It("should set the X-Hasura-Admin-Secret on the request", func() {
-			// Given
-			expectedHost := "this is the host"
-			req.Header.Set("Host", expectedHost)
-
-			mockGetAuthInfo(&authz.AuthzInfo{RoleId: authz.ConfigAnonymousRole()}, nil, mock.Anything, mock.Anything, mock.Anything)
-			mockServeHTTP(mock.Anything, mock.Anything)
-
-			// When
-			handler.ServeHTTP(rr, req)
-
-			// Then
-			Expect(req.Header.Get("X-Hasura-Admin-Secret")).Should(Equal(gqlreq.ConfigAdminSecret()))
-		})
 	})
 
 	Context("An HTTP request has user and account", func() {

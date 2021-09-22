@@ -44,7 +44,7 @@ func (h *initHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	actionPayload := &ActionPayloadInit{}
 	err := hshttp.GetBody(r, actionPayload)
 	if err != nil {
-		hshttp.WriteError(w, errorx.IllegalArgument.Wrap(err, "invalid payload for create customer"))
+		hshttp.WriteError(w, errorx.IllegalArgument.Wrap(err, "invalid payload for init"))
 		return
 	}
 

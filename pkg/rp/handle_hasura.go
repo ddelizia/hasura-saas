@@ -31,18 +31,16 @@ func (h *HasuraHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	defer cancel()
 	req = req.WithContext(ctx)
 
-	hshttp.SetSslRedirect(req, ConfigHasuraUrl())
+	hshttp.CleanHasuraSaasHeaders(req)
 
-	hshttp.SetHaderOnRequest(req, "X-Hasura-Admin-Secret", gqlreq.ConfigAdminSecret())
+	hshttp.SetSslRedirect(req, ConfigHasuraUrl())
 
 	req.Host = ConfigHasuraUrl().Host
 	req.URL.Path = "/"
 
-	authToken := req.Header.Get(hshttp.ConfigJWTHeader())
-
 	accountId := req.Header.Get(hshttp.ConfigAccountIdHeader())
 
-	authzInfo, err := h.AuthzSvc.GetAuthInfo(ctx, authToken, accountId)
+	authzInfo, err := h.AuthzSvc.GetAuthInfo(req)
 	if err != nil {
 		hshttp.WriteError(res, err)
 		return
@@ -52,7 +50,11 @@ func (h *HasuraHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		hshttp.SetHaderOnRequest(req, gqlreq.ConfigHasuraUserIdHeader(), authzInfo.UserId)
 		hshttp.SetHaderOnRequest(req, gqlreq.ConfigHasuraRoleHeader(), authzInfo.RoleId)
 
-		logrus.Debug(fmt.Sprintf("user [%s], accessing tenant [%s], with role id [%s]", authzInfo.UserId, accountId, authzInfo.RoleId))
+		logrus.WithFields(logrus.Fields{
+			LOG_PARAM_ACCOUNT_ID: authzInfo.AccountId,
+			LOG_PARAM_ROLE_ID:    authzInfo.RoleId,
+			LOG_PARAM_USER_ID:    authzInfo.UserId,
+		}).Debug(fmt.Sprintf("user [%s], accessing tenant [%s], with role id [%s]", authzInfo.UserId, accountId, authzInfo.RoleId))
 	}
 
 	h.Proxy.ServeHTTP(res, req)

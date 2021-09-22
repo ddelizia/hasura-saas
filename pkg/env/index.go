@@ -15,8 +15,9 @@ func loadEnvs() {
 	logrus.Info("loading configuration")
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("../../") // for testing porpouse
-	viper.AddConfigPath("../")    // for testing porpouse
+	viper.AddConfigPath("../../../") // for testing porpouse
+	viper.AddConfigPath("../../")    // for testing porpouse
+	viper.AddConfigPath("../")       // for testing porpouse
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 

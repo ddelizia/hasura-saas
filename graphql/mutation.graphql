@@ -57,3 +57,13 @@ mutation AddSubscriptionEvent($type: String!, $data: jsonb!) {
     }
   }
 }
+
+## Authz
+mutation SetAccountForUser ($id_account: uuid!, $id_user: String!) {
+  update_saas_membership(_set: {selected_at: "now()"}, where: {id_account: {_eq: $id_account}, id_user: {_eq: $id_user}}) {
+    affected_rows
+    returning {
+      selected_at
+    }
+  }
+}

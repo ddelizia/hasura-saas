@@ -3,8 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/ddelizia/hasura-saas/pkg/authz"
-	"github.com/ddelizia/hasura-saas/pkg/gqlsdk"
+	"github.com/ddelizia/hasura-saas/pkg/authz/oidc"
 	"github.com/ddelizia/hasura-saas/pkg/logger"
 	"github.com/ddelizia/hasura-saas/pkg/rp"
 	"github.com/gorilla/mux"
@@ -14,11 +13,7 @@ import (
 func main() {
 	logger.IntLogger()
 
-	sdkService := &gqlsdk.Client{
-		Client: gqlsdk.NewClientBuilder(nil).BuildClient(true, gqlsdk.WithAdminRole()),
-	}
-
-	authzSvc := authz.NewService(sdkService)
+	authzSvc := oidc.NewService()
 
 	proxyHasura := rp.NewHasuraService(authzSvc)
 
