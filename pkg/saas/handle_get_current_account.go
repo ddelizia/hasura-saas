@@ -18,7 +18,7 @@ type getCurrentAccountHandler struct {
 }
 
 func NewGetCurrentAccountHandler(graphqlSvc gqlreq.Service, sdkSvc gqlsdk.Service) http.Handler {
-	return &setCurrentAccountHandler{
+	return &getCurrentAccountHandler{
 		SdkSvc:     sdkSvc,
 		GraphqlSvc: graphqlSvc,
 	}
