@@ -3,10 +3,13 @@ package e2e
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"text/template"
 
+	"github.com/ddelizia/hasura-saas/pkg/gqlreq"
 	"github.com/ddelizia/hasura-saas/pkg/gqlsdk"
 	"github.com/onsi/ginkgo"
+	"github.com/simonnilsson/ask"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,7 +19,7 @@ type SaasAccountData struct {
 
 func GetAllTestAccounts() map[string]string {
 	result := &SaasAccountData{}
-	err := GqlService.Execute(
+	err := GraphqlService.Execute(
 		context.Background(),
 		`query GetAllAccountsStartingWithTest($_like: String = "Test%") {
 			saas_account(where: {name: {_like: $_like}}) {
@@ -41,11 +44,55 @@ func GetAllTestAccounts() map[string]string {
 	return response
 }
 
-func CreateTestConfiguration() {
+func DeleteTestData() {
+	logrus.Info("Delete test data")
+	CACHE_ACCOUNT_NAME_TO_ID = map[string]string{}
+	CACHE_ACCOUNT_ID_TO_NAME = map[string]string{}
+
+	var resultDeleteMembership map[string]interface{}
+	err := GraphqlService.Execute(
+		context.Background(),
+		fmt.Sprintf(`
+			mutation DeleteByPrefix {
+				delete_saas_membership(where: {id_user: {_like: "%s"}}) {
+					affected_rows
+				}
+			}
+			`, USER_PREFIX+"%"),
+		nil,
+		nil,
+		true,
+		resultDeleteMembership)
+
+	if err != nil {
+		ginkgo.Fail("failed to remove all members")
+	}
+
+	var result map[string]interface{}
+	err = GraphqlService.Execute(
+		context.Background(),
+		fmt.Sprintf(`
+		mutation DeleteByPrefix {
+			delete_saas_account(where: {name: {_like: "%s"}}) {
+				affected_rows
+			}
+		}
+		`, ACCOUNT_PREFIX+"%"),
+		nil,
+		nil,
+		true,
+		result)
+
+	if err != nil {
+		ginkgo.Fail("failed to remove all accounts with prefix: " + ACCOUNT_PREFIX)
+	}
+}
+
+func CreateTestData() {
 
 	logrus.Info("Creating test data")
 
-	tmpl, err := template.New("TemplateInitQuery").Parse(`
+	tmpl, err := template.New("TemplateCreateTestData").Parse(`
 	mutation MutationInsertInitialData {
 		
 		insert_saas_account(objects: [
@@ -72,7 +119,11 @@ func CreateTestConfiguration() {
 			{{- end }}
 		]) 
 		{
-			affected_rows
+			affected_rows,
+			returning {
+				id
+				name
+			}
 		}
 	}
 	`)
@@ -88,14 +139,31 @@ func CreateTestConfiguration() {
 	mutation := tpl.String()
 	logrus.Debug("importing initial data: " + mutation)
 
-	var result map[string]interface{}
-	err = GqlService.Execute(
+	result := map[string]interface{}{}
+	err = GraphqlService.Execute(
 		context.Background(),
 		mutation,
-		nil,
-		nil,
+		[]gqlreq.RequestHeader{},
+		[]gqlreq.RequestVar{},
 		true,
-		result)
+		&result)
+
+	if err != nil {
+		ginkgo.Fail("while executing mutation MutationInsertInitialData" + err.Error())
+	}
+
+	def := []interface{}{}
+	returnResult, isSuccessfult := ask.For(result, "insert_saas_account.returning").Slice(def)
+
+	if !isSuccessfult {
+		ginkgo.Fail("not able to parse data")
+	}
+
+	for _, v := range returnResult {
+		val := v.(map[string]interface{})
+		CACHE_ACCOUNT_NAME_TO_ID[val["name"].(string)] = val["id"].(string)
+		CACHE_ACCOUNT_ID_TO_NAME[val["id"].(string)] = val["name"].(string)
+	}
 
 	if err != nil {
 		ginkgo.Fail("error executing creation of account query " + err.Error() + " query: \n" + mutation)

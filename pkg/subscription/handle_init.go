@@ -77,7 +77,7 @@ func (h *initHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	logrus.Debug("building response")
 	result := &gqlsdk.InitSubscriptionOutput{
-		AccountID: accountMutationResp.InsertSaasAccount.Returning[0].ID,
+		IDAccount: accountMutationResp.InsertSaasAccount.Returning[0].ID,
 	}
 
 	err = hshttp.WriteBody(w, result)

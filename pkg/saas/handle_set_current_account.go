@@ -50,27 +50,29 @@ func (h *setCurrentAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	setR, err := h.SdkSvc.SetAccountForUser(r.Context(), actionPayload.Input.Data.AccountID, authzInfo.UserId)
+	setR, err := h.SdkSvc.SetAccountForUser(r.Context(), actionPayload.Input.Data.IDAccount, authzInfo.UserId)
 	if err != nil {
 		const message = "not able to set the account"
 		logrus.WithError(err).WithFields(logrus.Fields{
-			LOG_PARAM_ACCOUNT_ID: actionPayload.Input.Data.AccountID,
+			LOG_PARAM_ACCOUNT_ID: actionPayload.Input.Data.IDAccount,
 			LOG_PARAM_USER_ID:    authzInfo.UserId,
 		}).Error(message)
 		hshttp.WriteError(w, errorx.InternalError.Wrap(err, message))
+		return
 	}
 	if len(setR.UpdateSaasMembership.Returning) != 1 {
 		const message = "SetAccountForUser returned wrong amount of data"
 		logrus.WithError(err).WithFields(logrus.Fields{
-			LOG_PARAM_ACCOUNT_ID: actionPayload.Input.Data.AccountID,
+			LOG_PARAM_ACCOUNT_ID: actionPayload.Input.Data.IDAccount,
 			LOG_PARAM_USER_ID:    authzInfo.UserId,
 		}).Error(message)
 		hshttp.WriteError(w, errorx.InternalError.New(message))
+		return
 	}
 
 	logrus.Debug("building response")
 	result := &gqlsdk.SaasSetCurrentAccountOutput{
-		AccountID: actionPayload.Input.Data.AccountID,
+		IDAccount: actionPayload.Input.Data.IDAccount,
 		//*result.UpdateSaasMembership.Returning[0].SelectedAt,
 	}
 
@@ -81,7 +83,7 @@ func (h *setCurrentAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	}
 
 	logrus.WithFields(logrus.Fields{
-		LOG_PARAM_ACCOUNT_ID: actionPayload.Input.Data.AccountID,
+		LOG_PARAM_ACCOUNT_ID: actionPayload.Input.Data.IDAccount,
 		LOG_PARAM_USER_ID:    authzInfo.UserId,
-	}).Info("subscription init done")
+	}).Info("set current account done")
 }

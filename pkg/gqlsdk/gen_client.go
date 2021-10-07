@@ -427,17 +427,17 @@ func (c *Client) GetPlanFromStripePlan(ctx context.Context, stripeCode string, i
 	return &res, nil
 }
 
-const GetCurrentAccountDocument = `query GetCurrentAccount ($user_id: String!) {
-	saas_membership(where: {id_user:{_eq:$user_id}}, limit: 1, order_by: {selected_at:desc_nulls_last}) {
+const GetCurrentAccountDocument = `query GetCurrentAccount ($id_user: String!) {
+	saas_membership(where: {id_user:{_eq:$id_user}}, limit: 1, order_by: {selected_at:desc_nulls_last}) {
 		id_account
 		id_role
 	}
 }
 `
 
-func (c *Client) GetCurrentAccount(ctx context.Context, userID string, interceptors ...clientv2.RequestInterceptor) (*QueryGetCurrentAccount, error) {
+func (c *Client) GetCurrentAccount(ctx context.Context, idUser string, interceptors ...clientv2.RequestInterceptor) (*QueryGetCurrentAccount, error) {
 	vars := map[string]interface{}{
-		"user_id": userID,
+		"id_user": idUser,
 	}
 
 	var res QueryGetCurrentAccount

@@ -83,7 +83,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	logrus.Debug("building response")
 	result := &gqlsdk.CreateSubscriptionOutput{
-		AccountID: updatedStatus.UpdateSubscriptionStatus.Returning[0].IDAccount,
+		IDAccount: updatedStatus.UpdateSubscriptionStatus.Returning[0].IDAccount,
 		IsActive:  updatedStatus.UpdateSubscriptionStatus.Returning[0].IsActive,
 	}
 

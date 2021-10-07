@@ -30,6 +30,13 @@ func main() {
 		hshttp.MiddlewareSetContentTypeApplicationJson,
 	)).Methods("POST")
 
+	handlerGetCurrentAccount := saas.NewGetCurrentAccountHandler(graphqlSevice, sdkService)
+	r.Handle("/getCurrentAccount", hshttp.MiddlewareChain(
+		handlerGetCurrentAccount.ServeHTTP,
+		hshttp.MiddlewareLogRequest,
+		hshttp.MiddlewareSetContentTypeApplicationJson,
+	)).Methods("POST")
+
 	http.Handle("/", r)
 
 	if err := http.ListenAndServe(saas.ConfigListenAddress(), nil); err != nil {

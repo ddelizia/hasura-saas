@@ -3,8 +3,8 @@ package e2e_test
 import (
 	"context"
 	"fmt"
-	"os"
 
+	"github.com/ddelizia/hasura-saas/pkg/e2e"
 	"github.com/ddelizia/hasura-saas/pkg/gqlreq"
 	"github.com/ddelizia/hasura-saas/pkg/logger"
 	"github.com/ddelizia/hasura-saas/pkg/subscription"
@@ -15,14 +15,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/paymentmethod"
-)
-
-const (
-	GRAPH_QL_URL = "http://localhost:8082/v1/graphql"
-)
-
-var (
-	graphqlService = gqlreq.NewService()
 )
 
 func generateAccountName() string {
@@ -51,12 +43,12 @@ func createPaymentMethod(number, expMonth, expYear, cvc string) string {
 func initSubscription() map[string]interface{} {
 	bodyInit := map[string]interface{}{}
 
-	err := graphqlService.Execute(
+	err := e2e.GraphqlService.Execute(
 		context.Background(),
 		fmt.Sprintf(`
 		mutation InitSubscription {
 			subscription_init ( data: { account_name: "%0s", id_plan: "%1s" } ) {
-				account_id
+				id_account
 			}
 		}`, generateAccountName(), "basic"),
 		[]gqlreq.RequestHeader{
@@ -68,7 +60,7 @@ func initSubscription() map[string]interface{} {
 		true,
 		&bodyInit,
 	)
-	accountID, _ := ask.For(bodyInit, "subscription_init.account_id").String("")
+	accountID, _ := ask.For(bodyInit, "subscription_init.id_account").String("")
 
 	Expect(err).To(BeNil())
 	Expect(accountID).NotTo(BeEmpty())
@@ -79,12 +71,12 @@ func initSubscription() map[string]interface{} {
 func createSubscription(a, cardN, cardM, cardY, cardCVC string) map[string]interface{} {
 	bodyCreate := map[string]interface{}{}
 
-	err := graphqlService.Execute(
+	err := e2e.GraphqlService.Execute(
 		context.Background(),
 		fmt.Sprintf(`
 		mutation CreateSubscription {
 			subscription_create ( data: { payment_method_id: "%0s" } ) {
-				account_id,
+				id_account,
 				is_active
 			}
 		}`, createPaymentMethod(cardN, cardM, cardY, cardCVC)),
@@ -97,7 +89,7 @@ func createSubscription(a, cardN, cardM, cardY, cardCVC string) map[string]inter
 		true,
 		&bodyCreate,
 	)
-	accountID, _ := ask.For(bodyCreate, "subscription_create.account_id").String("")
+	accountID, _ := ask.For(bodyCreate, "subscription_create.id_account").String("")
 
 	// Then
 	Expect(err).To(BeNil())
@@ -106,11 +98,7 @@ func createSubscription(a, cardN, cardM, cardY, cardCVC string) map[string]inter
 	return bodyCreate
 }
 
-var _ = Describe("Subscription e2e", func() {
-
-	os.Setenv("GRAPHQL.HASURA.ADMINSECRET", os.Getenv("HASURA_GRAPHQL_ADMIN_SECRET"))
-	os.Setenv("SUBSCRIPTION.STRIPE.APIKEY", os.Getenv("STRIPE_KEY"))
-	os.Setenv("SUBSCRIPTION.STRIPE.WEBHOOKSECRET", os.Getenv("STRIPE_WEBHOOK_SECRET"))
+var _ = Describe("subscription e2e", func() {
 
 	stripe.Key = subscription.ConfigApiKey()
 	logrus.SetLevel(logrus.DebugLevel)
@@ -118,10 +106,10 @@ var _ = Describe("Subscription e2e", func() {
 		DisableTimestamp: true,
 	})
 
-	It("I should be able to execute complete payment flow with the default card", func() {
+	It("should be able to execute complete payment flow with the default card", func() {
 
 		responseInit := initSubscription()
-		accountID, _ := ask.For(responseInit, "subscription_init.account_id").String("")
+		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		responseCreate := createSubscription(accountID, "4242424242424242", "01", "2030", "314")
 		isActive, _ := ask.For(responseCreate, "subscription_create.is_active").Bool(false)
@@ -130,10 +118,10 @@ var _ = Describe("Subscription e2e", func() {
 
 	})
 
-	It("I should be able to execute a payment with 3d authentication", func() {
+	It("should be able to execute a payment with 3d authentication", func() {
 
 		responseInit := initSubscription()
-		accountID, _ := ask.For(responseInit, "subscription_init.account_id").String("")
+		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		responseCreate := createSubscription(accountID, "4000002760003184", "01", "2030", "314")
 		isActive, _ := ask.For(responseCreate, "subscription_create.is_active").Bool(true)
@@ -141,22 +129,22 @@ var _ = Describe("Subscription e2e", func() {
 		Expect(isActive).To(BeFalse())
 	})
 
-	It("I should be able to retry when payment is not successful", func() {
+	It("should be able to retry when payment is not successful", func() {
 
 		responseInit := initSubscription()
-		accountID, _ := ask.For(responseInit, "subscription_init.account_id").String("")
+		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		responseCreate := createSubscription(accountID, "4000002760003184", "01", "2030", "314")
 		isActiveCreate, _ := ask.For(responseCreate, "subscription_create.is_active").Bool(true)
-		accountCreate, _ := ask.For(responseCreate, "subscription_create.account_id").String("account_id_create")
+		accountCreate, _ := ask.For(responseCreate, "subscription_create.id_account").String("id_account_create")
 
 		bodyRetry := map[string]interface{}{}
-		err := graphqlService.Execute(
+		err := e2e.GraphqlService.Execute(
 			context.Background(),
 			fmt.Sprintf(`
 			mutation RetrySubscription {
 				subscription_retry ( data: { payment_method_id: "%0s" } ) {
-					account_id,
+					id_account,
 					is_active
 				}
 			}`, createPaymentMethod("4242424242424242", "01", "2030", "314")),
@@ -170,7 +158,7 @@ var _ = Describe("Subscription e2e", func() {
 			&bodyRetry,
 		)
 		isActiveRetry, _ := ask.For(bodyRetry, "subscription_retry.is_active").Bool(false)
-		accountRetry, _ := ask.For(bodyRetry, "subscription_retry.account_id").String("account_id_retry")
+		accountRetry, _ := ask.For(bodyRetry, "subscription_retry.id_account").String("id_account_retry")
 
 		Expect(err).To(BeNil())
 		Expect(isActiveCreate).To(BeFalse())
@@ -178,21 +166,21 @@ var _ = Describe("Subscription e2e", func() {
 		Expect(accountCreate).To(Equal(accountRetry))
 	})
 
-	It("I should be able to change an existing plan", func() {
+	It("should be able to change an existing plan", func() {
 
 		responseInit := initSubscription()
-		accountID, _ := ask.For(responseInit, "subscription_init.account_id").String("")
+		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		responseCreate := createSubscription(accountID, "4242424242424242", "01", "2030", "314")
 		isActiveCreate, _ := ask.For(responseCreate, "subscription_create.is_active").Bool(false)
-		accountCreate, _ := ask.For(responseCreate, "subscription_create.account_id").String("account_id_create")
+		accountCreate, _ := ask.For(responseCreate, "subscription_create.id_account").String("id_account_create")
 
 		bodyChange := map[string]interface{}{}
-		err := graphqlService.Execute(
+		err := e2e.GraphqlService.Execute(
 			context.Background(),
 			`mutation ChangeSubscription {
 				subscription_change ( data: { id_plan: "premium" } ) {
-					account_id,
+					id_account,
 					is_active
 				}
 			}`,
@@ -206,7 +194,7 @@ var _ = Describe("Subscription e2e", func() {
 			&bodyChange,
 		)
 		isActiveRetry, _ := ask.For(bodyChange, "subscription_change.is_active").Bool(false)
-		accountChange, _ := ask.For(bodyChange, "subscription_change.account_id").String("account_id_change")
+		accountChange, _ := ask.For(bodyChange, "subscription_change.id_account").String("id_account_change")
 
 		Expect(err).To(BeNil())
 		Expect(isActiveCreate).To(BeTrue())
@@ -214,16 +202,16 @@ var _ = Describe("Subscription e2e", func() {
 		Expect(accountCreate).To(Equal(accountChange))
 	})
 
-	It("I should be able to crete and cancel subscription", func() {
+	It("should be able to crete and cancel subscription", func() {
 
 		responseInit := initSubscription()
-		accountID, _ := ask.For(responseInit, "subscription_init.account_id").String("")
+		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		_ = createSubscription(accountID, "4242424242424242", "01", "2030", "314")
 
 		bodyCancel := map[string]interface{}{}
 
-		err := graphqlService.Execute(
+		err := e2e.GraphqlService.Execute(
 			context.Background(),
 			`mutation CancelSubscription {
 				subscription_cancel {
@@ -245,16 +233,16 @@ var _ = Describe("Subscription e2e", func() {
 		Expect(status).To(Equal("canceled"))
 	})
 
-	It("I should be able to cancel subscription if it is not account owner", func() {
+	It("should be able to cancel subscription if it is not account owner", func() {
 
 		responseInit := initSubscription()
-		accountID, _ := ask.For(responseInit, "subscription_init.account_id").String("")
+		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		_ = createSubscription(accountID, "4242424242424242", "01", "2030", "314")
 
 		bodyCancel := map[string]interface{}{}
 
-		err := graphqlService.Execute(
+		err := e2e.GraphqlService.Execute(
 			context.Background(),
 			`mutation CancelSubscription {
 				subscription_cancel {

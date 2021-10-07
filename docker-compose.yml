@@ -24,10 +24,11 @@ services:
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
       HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT: 15
-      SAAS_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
-      MICRO_SUBSCRIPTIONS_BASE_URL: "http://hs-subscription:1340"
       HASURA_GRAPHQL_MIGRATIONS_DIR: /data/hasura/migrations
       HASURA_GRAPHQL_METADATA_DIR: /data/hasura/metadata
+      SAAS_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      HS_SUBSCRIPTION_BASE_URL: "http://hs-subscription:1340"
+      HS_SAAS_BASE_URL: "http://hs-saas:1340"
     volumes:
     - ./hasura:/data/hasura
 

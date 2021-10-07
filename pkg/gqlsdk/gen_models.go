@@ -30,7 +30,7 @@ type ChangeSubscriptionInput struct {
 }
 
 type ChangeSubscriptionOutput struct {
-	AccountID string `json:"account_id"`
+	IDAccount string `json:"id_account"`
 	IsActive  bool   `json:"is_active"`
 }
 
@@ -39,7 +39,7 @@ type CreateSubscriptionInput struct {
 }
 
 type CreateSubscriptionOutput struct {
-	AccountID string `json:"account_id"`
+	IDAccount string `json:"id_account"`
 	IsActive  bool   `json:"is_active"`
 }
 
@@ -49,7 +49,7 @@ type InitSubscriptionInput struct {
 }
 
 type InitSubscriptionOutput struct {
-	AccountID string `json:"account_id"`
+	IDAccount string `json:"id_account"`
 }
 
 type RetrySubscriptionInput struct {
@@ -57,7 +57,7 @@ type RetrySubscriptionInput struct {
 }
 
 type RetrySubscriptionOutput struct {
-	AccountID string `json:"account_id"`
+	IDAccount string `json:"id_account"`
 	IsActive  bool   `json:"is_active"`
 }
 
@@ -71,11 +71,11 @@ type SaasGetCurrentAccountOutput struct {
 }
 
 type SaasSetCurrentAccountInput struct {
-	AccountID string `json:"account_id"`
+	IDAccount string `json:"id_account"`
 }
 
 type SaasSetCurrentAccountOutput struct {
-	AccountID string `json:"account_id"`
+	IDAccount string `json:"id_account"`
 }
 
 // Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.

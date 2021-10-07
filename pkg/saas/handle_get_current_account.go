@@ -32,7 +32,7 @@ type ActionPayloadGetCurrentAccount struct {
 }
 
 /*
-Handle set current account for a user
+Handle get current account for a user
 */
 func (h *getCurrentAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
@@ -44,25 +44,19 @@ func (h *getCurrentAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	logrus.Debug("get authorization info from session")
-	authzInfo, err := h.GraphqlSvc.GetSessionInfo(actionPayload.SessionVariables)
-	if err != nil {
-		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "unable to retrieve authz information"))
-		return
-	}
-
-	setR, err := h.SdkSvc.GetCurrentAccount(r.Context(), authzInfo.UserId)
+	logrus.Debug("getting current account from hasura")
+	setR, err := h.SdkSvc.GetCurrentAccount(r.Context(), actionPayload.Input.Data.IDUser)
 	if err != nil {
 		const message = "not able to get the account account"
 		logrus.WithError(err).WithFields(logrus.Fields{
-			LOG_PARAM_USER_ID: authzInfo.UserId,
+			LOG_PARAM_USER_ID: actionPayload.Input.Data.IDUser,
 		}).Error(message)
 		hshttp.WriteError(w, errorx.InternalError.Wrap(err, message))
 	}
 	if len(setR.SaasMembership) > 1 {
 		const message = "GetCurrentAccount returned wrong amount of data"
 		logrus.WithError(err).WithFields(logrus.Fields{
-			LOG_PARAM_USER_ID: authzInfo.UserId,
+			LOG_PARAM_USER_ID: actionPayload.Input.Data.IDUser,
 		}).Error(message)
 		hshttp.WriteError(w, errorx.InternalError.New(message))
 	}
@@ -87,7 +81,7 @@ func (h *getCurrentAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 
 	logrus.WithFields(logrus.Fields{
 		LOG_PARAM_ACCOUNT_ID: result.IDAccount,
-		LOG_PARAM_USER_ID:    authzInfo.UserId,
+		LOG_PARAM_USER_ID:    actionPayload.Input.Data.IDUser,
 		LOG_PARAM_ROLE_ID:    result.IDRole,
-	}).Info("subscription init done")
+	}).Info("get current account done")
 }

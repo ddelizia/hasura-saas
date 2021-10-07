@@ -26,53 +26,67 @@ const (
 	TABLE_SAAS_ACCOUNT          = "saas_account"
 	TABLE_SUBSCRIPTION_CUSTOMER = "subscription_customer"
 	TABLE_SUBSCRIPTION_STATUS   = "subscription_status"
+	ACCOUNT_PREFIX              = "TestAccount"
+	USER_PREFIX                 = "TestUser"
 
-	USER_ACCOUNT_O1_01 = "TestUserAccount01_01"
-	USER_ACCOUNT_O1_02 = "TestUserAccount01_02"
-	USER_ACCOUNT_O1_03 = "TestUserAccount01_03"
-	USER_ACCOUNT_O1_04 = "TestUserAccount01_04"
+	USER_ON_ACCOUNT_O1_ACCOUNT_OWNER = USER_PREFIX + "_Account_01_account_owner"
+	USER_ON_ACCOUNT_O1_ACCOUNT_ADMIN = USER_PREFIX + "_Account_01_account_admin"
+	USER_ON_ACCOUNT_O1_USER          = USER_PREFIX + "_Account_01_account_user"
 
-	USER_ACCOUNT_02_01 = "TestUserAccount02_01"
-	USER_ACCOUNT_02_02 = "TestUserAccount02_02"
-	USER_ACCOUNT_02_03 = "TestUserAccount02_03"
-	USER_ACCOUNT_02_04 = "TestUserAccount02_04"
+	USER_ON_ACCOUNT_02_ACCOUNT_OWNER = USER_PREFIX + "_Account_02_account_owner"
+	USER_ON_ACCOUNT_02_ACCOUNT_ADMIN = USER_PREFIX + "_Account_02_account_admin"
+	USER_ON_ACCOUNT_02_USER          = USER_PREFIX + "_Account_02_account_user"
 
-	USER_ACCOUNT_03_01 = "TestUserAccount03_01"
-	USER_ACCOUNT_03_02 = "TestUserAccount03_02"
-	USER_ACCOUNT_03_03 = "TestUserAccount03_03"
-	USER_ACCOUNT_03_04 = "TestUserAccount03_04"
+	USER_ON_ACCOUNT_03_ACCOUNT_OWNER = USER_PREFIX + "_Account_03_account_owner"
+	USER_ON_ACCOUNT_03_ACCOUNT_ADMIN = USER_PREFIX + "_Account_03_account_admin"
+	USER_ON_ACCOUNT_03_USER          = USER_PREFIX + "_Account_03_account_user"
 
-	ACCOUNT_01 = "TestAccount01"
-	ACCOUNT_02 = "TestAccount02"
-	ACCOUNT_03 = "TestAccount03"
+	SHARED_USER_ACCOUNT_01_02_OWNER_ADMIN = USER_PREFIX + "_Account_01_02_owner_admin"
+	SHARED_USER_ACCOUNT_01_03_ADMIN_USER  = USER_PREFIX + "_Account_01_03_admin_user"
+
+	ACCOUNT_01 = ACCOUNT_PREFIX + "01"
+	ACCOUNT_02 = ACCOUNT_PREFIX + "02"
+	ACCOUNT_03 = ACCOUNT_PREFIX + "03"
 
 	ROLE_ADMIN         = "admin"
 	ROLE_ACCOUNT_OWNER = "account_owner"
 	ROLE_ACCOUNT_ADMIN = "account_admin"
 	ROLE_USER          = "account_user"
 
-	PLAN_BASIC = "basic"
+	PLAN_BASIC   = "basic"
+	PLAN_PREMIUM = "premium"
 
 	STATUS_PAID = "PAID"
 )
 
 var (
-	GqlService = gqlreq.NewService()
+	GraphqlService = gqlreq.NewService()
+
+	CACHE_ACCOUNT_NAME_TO_ID = map[string]string{}
+	CACHE_ACCOUNT_ID_TO_NAME = map[string]string{}
 
 	TEST_CONFIGURATION = &TestConfig{
 		Users: []string{
-			USER_ACCOUNT_O1_01,
-			USER_ACCOUNT_O1_02,
-			USER_ACCOUNT_O1_03,
-			USER_ACCOUNT_O1_04,
+			USER_ON_ACCOUNT_O1_ACCOUNT_OWNER,
+			USER_ON_ACCOUNT_O1_ACCOUNT_ADMIN,
+			USER_ON_ACCOUNT_O1_USER,
+			USER_ON_ACCOUNT_02_ACCOUNT_OWNER,
+			USER_ON_ACCOUNT_02_ACCOUNT_ADMIN,
+			USER_ON_ACCOUNT_02_USER,
+			USER_ON_ACCOUNT_03_ACCOUNT_OWNER,
+			USER_ON_ACCOUNT_03_ACCOUNT_ADMIN,
+			USER_ON_ACCOUNT_03_USER,
+			SHARED_USER_ACCOUNT_01_02_OWNER_ADMIN,
+			SHARED_USER_ACCOUNT_01_03_ADMIN_USER,
 		},
 		Accounts: map[string]*AccountData{
 			ACCOUNT_01: {
 				Memberships: map[string]*MembershipData{
-					USER_ACCOUNT_O1_01: {Role: ROLE_ADMIN},
-					USER_ACCOUNT_O1_02: {Role: ROLE_ACCOUNT_OWNER},
-					USER_ACCOUNT_O1_03: {Role: ROLE_ACCOUNT_ADMIN},
-					USER_ACCOUNT_O1_04: {Role: ROLE_USER},
+					USER_ON_ACCOUNT_O1_ACCOUNT_OWNER:      {Role: ROLE_ACCOUNT_OWNER},
+					USER_ON_ACCOUNT_O1_ACCOUNT_ADMIN:      {Role: ROLE_ACCOUNT_ADMIN},
+					USER_ON_ACCOUNT_O1_USER:               {Role: ROLE_USER},
+					SHARED_USER_ACCOUNT_01_02_OWNER_ADMIN: {Role: ROLE_ACCOUNT_OWNER},
+					SHARED_USER_ACCOUNT_01_03_ADMIN_USER:  {Role: ROLE_ACCOUNT_ADMIN},
 				},
 				Customer: "MockStripeCustomer" + ACCOUNT_01,
 				Plan:     PLAN_BASIC,
@@ -80,10 +94,10 @@ var (
 			},
 			ACCOUNT_02: {
 				Memberships: map[string]*MembershipData{
-					USER_ACCOUNT_02_01: {Role: ROLE_ADMIN},
-					USER_ACCOUNT_02_02: {Role: ROLE_ACCOUNT_OWNER},
-					USER_ACCOUNT_02_03: {Role: ROLE_ACCOUNT_ADMIN},
-					USER_ACCOUNT_02_04: {Role: ROLE_USER},
+					USER_ON_ACCOUNT_02_ACCOUNT_OWNER:      {Role: ROLE_ACCOUNT_OWNER},
+					USER_ON_ACCOUNT_02_ACCOUNT_ADMIN:      {Role: ROLE_ACCOUNT_ADMIN},
+					USER_ON_ACCOUNT_02_USER:               {Role: ROLE_USER},
+					SHARED_USER_ACCOUNT_01_02_OWNER_ADMIN: {Role: ROLE_ACCOUNT_ADMIN},
 				},
 				Customer: "MockStripeCustomer" + ACCOUNT_02,
 				Plan:     PLAN_BASIC,
@@ -91,13 +105,13 @@ var (
 			},
 			ACCOUNT_03: {
 				Memberships: map[string]*MembershipData{
-					USER_ACCOUNT_03_01: {Role: ROLE_ADMIN},
-					USER_ACCOUNT_03_02: {Role: ROLE_ACCOUNT_OWNER},
-					USER_ACCOUNT_03_03: {Role: ROLE_ACCOUNT_ADMIN},
-					USER_ACCOUNT_03_04: {Role: ROLE_USER},
+					USER_ON_ACCOUNT_03_ACCOUNT_OWNER:     {Role: ROLE_ACCOUNT_OWNER},
+					USER_ON_ACCOUNT_03_ACCOUNT_ADMIN:     {Role: ROLE_ACCOUNT_ADMIN},
+					USER_ON_ACCOUNT_03_USER:              {Role: ROLE_USER},
+					SHARED_USER_ACCOUNT_01_03_ADMIN_USER: {Role: ROLE_USER},
 				},
 				Customer: "MockStripeCustomer" + ACCOUNT_03,
-				Plan:     PLAN_BASIC,
+				Plan:     PLAN_PREMIUM,
 				Status:   STATUS_PAID,
 			},
 		},
