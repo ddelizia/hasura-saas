@@ -24,10 +24,11 @@ services:
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
       HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT: 15
-      SAAS_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
-      MICRO_SUBSCRIPTIONS_BASE_URL: "http://hs-subscription:1340"
       HASURA_GRAPHQL_MIGRATIONS_DIR: /data/hasura/migrations
       HASURA_GRAPHQL_METADATA_DIR: /data/hasura/metadata
+      SAAS_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      HS_SUBSCRIPTION_BASE_URL: "http://hs-subscription:1340"
+      HS_SAAS_BASE_URL: "http://hs-saas:1340"
     volumes:
     - ./hasura:/data/hasura
 
@@ -80,6 +81,30 @@ services:
     - "go"
     - "run"
     - "./cmd/rp/main.go"
+  
+  hs-saas:
+    image: golang:1.16
+    depends_on: 
+    - graphql-engine
+    working_dir: /app
+    volumes:
+    - ./go.mod:/app/go.mod:ro
+    - ./go.sum:/app/go.sum:ro
+    - ./config.yaml:/app/config.yaml:ro
+    - ./cmd/:/app/cmd/:ro
+    - ./pkg/:/app/pkg/:ro
+    environment: 
+      GRAPHQL.HASURA.ADMINSECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+      GRAPHQL.URL: "http://graphql-engine:8080/v1/graphql"
+      LOGGER.LEVEL: "debug"
+    expose: 
+    - "1340"
+    ports: 
+    - "1343:1340"
+    command: 
+    - "go"
+    - "run"
+    - "./cmd/saas/main.go"
 
   stripe-cli:
     image: stripe/stripe-cli

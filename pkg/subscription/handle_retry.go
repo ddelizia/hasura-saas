@@ -80,7 +80,7 @@ func (h *RetryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	logrus.Debug("building response")
 	result := &gqlsdk.RetrySubscriptionOutput{
-		AccountID: authzInfo.AccountId,
+		IDAccount: authzInfo.AccountId,
 		IsActive:  updatedStatus.UpdateSubscriptionStatus.Returning[0].IsActive,
 	}
 

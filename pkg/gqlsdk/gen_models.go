@@ -30,7 +30,7 @@ type ChangeSubscriptionInput struct {
 }
 
 type ChangeSubscriptionOutput struct {
-	AccountID string `json:"account_id"`
+	IDAccount string `json:"id_account"`
 	IsActive  bool   `json:"is_active"`
 }
 
@@ -39,7 +39,7 @@ type CreateSubscriptionInput struct {
 }
 
 type CreateSubscriptionOutput struct {
-	AccountID string `json:"account_id"`
+	IDAccount string `json:"id_account"`
 	IsActive  bool   `json:"is_active"`
 }
 
@@ -49,7 +49,7 @@ type InitSubscriptionInput struct {
 }
 
 type InitSubscriptionOutput struct {
-	AccountID string `json:"account_id"`
+	IDAccount string `json:"id_account"`
 }
 
 type RetrySubscriptionInput struct {
@@ -57,8 +57,25 @@ type RetrySubscriptionInput struct {
 }
 
 type RetrySubscriptionOutput struct {
-	AccountID string `json:"account_id"`
+	IDAccount string `json:"id_account"`
 	IsActive  bool   `json:"is_active"`
+}
+
+type SaasGetCurrentAccountInput struct {
+	IDUser string `json:"id_user"`
+}
+
+type SaasGetCurrentAccountOutput struct {
+	IDAccount string `json:"id_account"`
+	IDRole    string `json:"id_role"`
+}
+
+type SaasSetCurrentAccountInput struct {
+	IDAccount string `json:"id_account"`
+}
+
+type SaasSetCurrentAccountOutput struct {
+	IDAccount string `json:"id_account"`
 }
 
 // Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
@@ -441,8 +458,9 @@ type SaasMembership struct {
 	// An object relationship
 	SaasAccount *SaasAccount `json:"saas_account,omitempty"`
 	// An object relationship
-	SaasRole  *SaasRole `json:"saas_role,omitempty"`
-	UpdatedAt string    `json:"updated_at"`
+	SaasRole   *SaasRole `json:"saas_role,omitempty"`
+	SelectedAt *string   `json:"selected_at,omitempty"`
+	UpdatedAt  string    `json:"updated_at"`
 }
 
 // aggregated selection of "saas_membership"
@@ -484,6 +502,7 @@ type SaasMembershipBoolExp struct {
 	IDUser      *StringComparisonExp      `json:"id_user,omitempty"`
 	SaasAccount *SaasAccountBoolExp       `json:"saas_account,omitempty"`
 	SaasRole    *SaasRoleBoolExp          `json:"saas_role,omitempty"`
+	SelectedAt  *TimestamptzComparisonExp `json:"selected_at,omitempty"`
 	UpdatedAt   *TimestamptzComparisonExp `json:"updated_at,omitempty"`
 }
 
@@ -496,47 +515,52 @@ type SaasMembershipInsertInput struct {
 	IDUser      *string                       `json:"id_user,omitempty"`
 	SaasAccount *SaasAccountObjRelInsertInput `json:"saas_account,omitempty"`
 	SaasRole    *SaasRoleObjRelInsertInput    `json:"saas_role,omitempty"`
+	SelectedAt  *string                       `json:"selected_at,omitempty"`
 	UpdatedAt   *string                       `json:"updated_at,omitempty"`
 }
 
 // aggregate max on columns
 type SaasMembershipMaxFields struct {
-	CreatedAt *string `json:"created_at,omitempty"`
-	ID        *string `json:"id,omitempty"`
-	IDAccount *string `json:"id_account,omitempty"`
-	IDRole    *string `json:"id_role,omitempty"`
-	IDUser    *string `json:"id_user,omitempty"`
-	UpdatedAt *string `json:"updated_at,omitempty"`
+	CreatedAt  *string `json:"created_at,omitempty"`
+	ID         *string `json:"id,omitempty"`
+	IDAccount  *string `json:"id_account,omitempty"`
+	IDRole     *string `json:"id_role,omitempty"`
+	IDUser     *string `json:"id_user,omitempty"`
+	SelectedAt *string `json:"selected_at,omitempty"`
+	UpdatedAt  *string `json:"updated_at,omitempty"`
 }
 
 // order by max() on columns of table "saas_membership"
 type SaasMembershipMaxOrderBy struct {
-	CreatedAt *OrderBy `json:"created_at,omitempty"`
-	ID        *OrderBy `json:"id,omitempty"`
-	IDAccount *OrderBy `json:"id_account,omitempty"`
-	IDRole    *OrderBy `json:"id_role,omitempty"`
-	IDUser    *OrderBy `json:"id_user,omitempty"`
-	UpdatedAt *OrderBy `json:"updated_at,omitempty"`
+	CreatedAt  *OrderBy `json:"created_at,omitempty"`
+	ID         *OrderBy `json:"id,omitempty"`
+	IDAccount  *OrderBy `json:"id_account,omitempty"`
+	IDRole     *OrderBy `json:"id_role,omitempty"`
+	IDUser     *OrderBy `json:"id_user,omitempty"`
+	SelectedAt *OrderBy `json:"selected_at,omitempty"`
+	UpdatedAt  *OrderBy `json:"updated_at,omitempty"`
 }
 
 // aggregate min on columns
 type SaasMembershipMinFields struct {
-	CreatedAt *string `json:"created_at,omitempty"`
-	ID        *string `json:"id,omitempty"`
-	IDAccount *string `json:"id_account,omitempty"`
-	IDRole    *string `json:"id_role,omitempty"`
-	IDUser    *string `json:"id_user,omitempty"`
-	UpdatedAt *string `json:"updated_at,omitempty"`
+	CreatedAt  *string `json:"created_at,omitempty"`
+	ID         *string `json:"id,omitempty"`
+	IDAccount  *string `json:"id_account,omitempty"`
+	IDRole     *string `json:"id_role,omitempty"`
+	IDUser     *string `json:"id_user,omitempty"`
+	SelectedAt *string `json:"selected_at,omitempty"`
+	UpdatedAt  *string `json:"updated_at,omitempty"`
 }
 
 // order by min() on columns of table "saas_membership"
 type SaasMembershipMinOrderBy struct {
-	CreatedAt *OrderBy `json:"created_at,omitempty"`
-	ID        *OrderBy `json:"id,omitempty"`
-	IDAccount *OrderBy `json:"id_account,omitempty"`
-	IDRole    *OrderBy `json:"id_role,omitempty"`
-	IDUser    *OrderBy `json:"id_user,omitempty"`
-	UpdatedAt *OrderBy `json:"updated_at,omitempty"`
+	CreatedAt  *OrderBy `json:"created_at,omitempty"`
+	ID         *OrderBy `json:"id,omitempty"`
+	IDAccount  *OrderBy `json:"id_account,omitempty"`
+	IDRole     *OrderBy `json:"id_role,omitempty"`
+	IDUser     *OrderBy `json:"id_user,omitempty"`
+	SelectedAt *OrderBy `json:"selected_at,omitempty"`
+	UpdatedAt  *OrderBy `json:"updated_at,omitempty"`
 }
 
 // response of any mutation on the table "saas_membership"
@@ -563,6 +587,7 @@ type SaasMembershipOrderBy struct {
 	IDUser      *OrderBy            `json:"id_user,omitempty"`
 	SaasAccount *SaasAccountOrderBy `json:"saas_account,omitempty"`
 	SaasRole    *SaasRoleOrderBy    `json:"saas_role,omitempty"`
+	SelectedAt  *OrderBy            `json:"selected_at,omitempty"`
 	UpdatedAt   *OrderBy            `json:"updated_at,omitempty"`
 }
 
@@ -573,12 +598,13 @@ type SaasMembershipPkColumnsInput struct {
 
 // input type for updating data in table "saas_membership"
 type SaasMembershipSetInput struct {
-	CreatedAt *string `json:"created_at,omitempty"`
-	ID        *string `json:"id,omitempty"`
-	IDAccount *string `json:"id_account,omitempty"`
-	IDRole    *string `json:"id_role,omitempty"`
-	IDUser    *string `json:"id_user,omitempty"`
-	UpdatedAt *string `json:"updated_at,omitempty"`
+	CreatedAt  *string `json:"created_at,omitempty"`
+	ID         *string `json:"id,omitempty"`
+	IDAccount  *string `json:"id_account,omitempty"`
+	IDRole     *string `json:"id_role,omitempty"`
+	IDUser     *string `json:"id_user,omitempty"`
+	SelectedAt *string `json:"selected_at,omitempty"`
+	UpdatedAt  *string `json:"updated_at,omitempty"`
 }
 
 // columns and relationships of "saas_role"
@@ -1857,6 +1883,8 @@ const (
 	// column name
 	SaasMembershipSelectColumnIDUser SaasMembershipSelectColumn = "id_user"
 	// column name
+	SaasMembershipSelectColumnSelectedAt SaasMembershipSelectColumn = "selected_at"
+	// column name
 	SaasMembershipSelectColumnUpdatedAt SaasMembershipSelectColumn = "updated_at"
 )
 
@@ -1866,12 +1894,13 @@ var AllSaasMembershipSelectColumn = []SaasMembershipSelectColumn{
 	SaasMembershipSelectColumnIDAccount,
 	SaasMembershipSelectColumnIDRole,
 	SaasMembershipSelectColumnIDUser,
+	SaasMembershipSelectColumnSelectedAt,
 	SaasMembershipSelectColumnUpdatedAt,
 }
 
 func (e SaasMembershipSelectColumn) IsValid() bool {
 	switch e {
-	case SaasMembershipSelectColumnCreatedAt, SaasMembershipSelectColumnID, SaasMembershipSelectColumnIDAccount, SaasMembershipSelectColumnIDRole, SaasMembershipSelectColumnIDUser, SaasMembershipSelectColumnUpdatedAt:
+	case SaasMembershipSelectColumnCreatedAt, SaasMembershipSelectColumnID, SaasMembershipSelectColumnIDAccount, SaasMembershipSelectColumnIDRole, SaasMembershipSelectColumnIDUser, SaasMembershipSelectColumnSelectedAt, SaasMembershipSelectColumnUpdatedAt:
 		return true
 	}
 	return false
@@ -1913,6 +1942,8 @@ const (
 	// column name
 	SaasMembershipUpdateColumnIDUser SaasMembershipUpdateColumn = "id_user"
 	// column name
+	SaasMembershipUpdateColumnSelectedAt SaasMembershipUpdateColumn = "selected_at"
+	// column name
 	SaasMembershipUpdateColumnUpdatedAt SaasMembershipUpdateColumn = "updated_at"
 )
 
@@ -1922,12 +1953,13 @@ var AllSaasMembershipUpdateColumn = []SaasMembershipUpdateColumn{
 	SaasMembershipUpdateColumnIDAccount,
 	SaasMembershipUpdateColumnIDRole,
 	SaasMembershipUpdateColumnIDUser,
+	SaasMembershipUpdateColumnSelectedAt,
 	SaasMembershipUpdateColumnUpdatedAt,
 }
 
 func (e SaasMembershipUpdateColumn) IsValid() bool {
 	switch e {
-	case SaasMembershipUpdateColumnCreatedAt, SaasMembershipUpdateColumnID, SaasMembershipUpdateColumnIDAccount, SaasMembershipUpdateColumnIDRole, SaasMembershipUpdateColumnIDUser, SaasMembershipUpdateColumnUpdatedAt:
+	case SaasMembershipUpdateColumnCreatedAt, SaasMembershipUpdateColumnID, SaasMembershipUpdateColumnIDAccount, SaasMembershipUpdateColumnIDRole, SaasMembershipUpdateColumnIDUser, SaasMembershipUpdateColumnSelectedAt, SaasMembershipUpdateColumnUpdatedAt:
 		return true
 	}
 	return false

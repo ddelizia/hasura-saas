@@ -59,3 +59,13 @@ func (m *ServiceMock) GetPlanFromStripePlan(ctx context.Context, stripeCode stri
 	args := m.Called(ctx, stripeCode, interceptors)
 	return args.Get(0).(*QueryGetPlanFromStripePlan), args.Error(1)
 }
+
+func (m *ServiceMock) SetAccountForUser(ctx context.Context, idAccount string, idUser string, interceptors ...clientv2.RequestInterceptor) (*MutationSetAccountForUser, error) {
+	args := m.Called(ctx, idAccount, idUser, interceptors)
+	return args.Get(0).(*MutationSetAccountForUser), args.Error(1)
+}
+
+func (m *ServiceMock) GetCurrentAccount(ctx context.Context, userID string, interceptors ...clientv2.RequestInterceptor) (*QueryGetCurrentAccount, error) {
+	args := m.Called(ctx, userID, interceptors)
+	return args.Get(0).(*QueryGetCurrentAccount), args.Error(1)
+}

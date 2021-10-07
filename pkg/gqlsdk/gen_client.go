@@ -24,6 +24,7 @@ type QueryRoot struct {
 	SaasAddress                     []*SaasAddress                  "json:\"saas_address\" graphql:\"saas_address\""
 	SaasAddressAggregate            SaasAddressAggregate            "json:\"saas_address_aggregate\" graphql:\"saas_address_aggregate\""
 	SaasAddressByPk                 *SaasAddress                    "json:\"saas_address_by_pk\" graphql:\"saas_address_by_pk\""
+	SaasGetCurrentAccount           *SaasGetCurrentAccountOutput    "json:\"saas_get_current_account\" graphql:\"saas_get_current_account\""
 	SaasMembership                  []*SaasMembership               "json:\"saas_membership\" graphql:\"saas_membership\""
 	SaasMembershipAggregate         SaasMembershipAggregate         "json:\"saas_membership_aggregate\" graphql:\"saas_membership_aggregate\""
 	SaasMembershipByPk              *SaasMembership                 "json:\"saas_membership_by_pk\" graphql:\"saas_membership_by_pk\""
@@ -83,6 +84,7 @@ type MutationRoot struct {
 	InsertSubscriptionPlanOne       *SubscriptionPlan                       "json:\"insert_subscription_plan_one\" graphql:\"insert_subscription_plan_one\""
 	InsertSubscriptionStatus        *SubscriptionStatusMutationResponse     "json:\"insert_subscription_status\" graphql:\"insert_subscription_status\""
 	InsertSubscriptionStatusOne     *SubscriptionStatus                     "json:\"insert_subscription_status_one\" graphql:\"insert_subscription_status_one\""
+	SaasSetCurrentAccount           *SaasSetCurrentAccountOutput            "json:\"saas_set_current_account\" graphql:\"saas_set_current_account\""
 	SubscriptionCancel              *CancelSubscriptionOutput               "json:\"subscription_cancel\" graphql:\"subscription_cancel\""
 	SubscriptionChange              *ChangeSubscriptionOutput               "json:\"subscription_change\" graphql:\"subscription_change\""
 	SubscriptionCreate              *CreateSubscriptionOutput               "json:\"subscription_create\" graphql:\"subscription_create\""
@@ -133,6 +135,14 @@ type MutationAddSubscriptionEvent struct {
 		} "json:\"returning\" graphql:\"returning\""
 	} "json:\"insert_subscription_event\" graphql:\"insert_subscription_event\""
 }
+type MutationSetAccountForUser struct {
+	UpdateSaasMembership *struct {
+		AffectedRows int64 "json:\"affected_rows\" graphql:\"affected_rows\""
+		Returning    []*struct {
+			SelectedAt *string "json:\"selected_at\" graphql:\"selected_at\""
+		} "json:\"returning\" graphql:\"returning\""
+	} "json:\"update_saas_membership\" graphql:\"update_saas_membership\""
+}
 type QueryGetAccountInfoForCreatingSubscription struct {
 	SaasAccount []*struct {
 		ID                   string "json:\"id\" graphql:\"id\""
@@ -172,6 +182,12 @@ type QueryGetPlanFromStripePlan struct {
 	SubscriptionPlan []*struct {
 		ID string "json:\"id\" graphql:\"id\""
 	} "json:\"subscription_plan\" graphql:\"subscription_plan\""
+}
+type QueryGetCurrentAccount struct {
+	SaasMembership []*struct {
+		IDAccount string "json:\"id_account\" graphql:\"id_account\""
+		IDRole    string "json:\"id_role\" graphql:\"id_role\""
+	} "json:\"saas_membership\" graphql:\"saas_membership\""
 }
 
 const CreateSubscriptionCustomerDocument = `mutation CreateSubscriptionCustomer ($name: String!, $id_plan: String!, $id_user: String!, $stripe_customer: String!, $status: String!, $id_role: String!) {
@@ -250,6 +266,30 @@ func (c *Client) AddSubscriptionEvent(ctx context.Context, typeArg string, data 
 
 	var res MutationAddSubscriptionEvent
 	if err := c.Client.Post(ctx, "AddSubscriptionEvent", AddSubscriptionEventDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const SetAccountForUserDocument = `mutation SetAccountForUser ($id_account: uuid!, $id_user: String!) {
+	update_saas_membership(_set: {selected_at:"now()"}, where: {id_account:{_eq:$id_account},id_user:{_eq:$id_user}}) {
+		affected_rows
+		returning {
+			selected_at
+		}
+	}
+}
+`
+
+func (c *Client) SetAccountForUser(ctx context.Context, idAccount string, idUser string, interceptors ...clientv2.RequestInterceptor) (*MutationSetAccountForUser, error) {
+	vars := map[string]interface{}{
+		"id_account": idAccount,
+		"id_user":    idUser,
+	}
+
+	var res MutationSetAccountForUser
+	if err := c.Client.Post(ctx, "SetAccountForUser", SetAccountForUserDocument, &res, vars, interceptors...); err != nil {
 		return nil, err
 	}
 
@@ -381,6 +421,27 @@ func (c *Client) GetPlanFromStripePlan(ctx context.Context, stripeCode string, i
 
 	var res QueryGetPlanFromStripePlan
 	if err := c.Client.Post(ctx, "GetPlanFromStripePlan", GetPlanFromStripePlanDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetCurrentAccountDocument = `query GetCurrentAccount ($id_user: String!) {
+	saas_membership(where: {id_user:{_eq:$id_user}}, limit: 1, order_by: {selected_at:desc_nulls_last}) {
+		id_account
+		id_role
+	}
+}
+`
+
+func (c *Client) GetCurrentAccount(ctx context.Context, idUser string, interceptors ...clientv2.RequestInterceptor) (*QueryGetCurrentAccount, error) {
+	vars := map[string]interface{}{
+		"id_user": idUser,
+	}
+
+	var res QueryGetCurrentAccount
+	if err := c.Client.Post(ctx, "GetCurrentAccount", GetCurrentAccountDocument, &res, vars, interceptors...); err != nil {
 		return nil, err
 	}
 

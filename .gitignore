@@ -23,3 +23,5 @@ vendor/
 Makefile
 
 setEnv.sh
+
+.vscode

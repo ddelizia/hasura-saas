@@ -44,7 +44,7 @@ func (h *initHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	actionPayload := &ActionPayloadInit{}
 	err := hshttp.GetBody(r, actionPayload)
 	if err != nil {
-		hshttp.WriteError(w, errorx.IllegalArgument.Wrap(err, "invalid payload for create customer"))
+		hshttp.WriteError(w, errorx.IllegalArgument.Wrap(err, "invalid payload for init"))
 		return
 	}
 
@@ -77,7 +77,7 @@ func (h *initHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	logrus.Debug("building response")
 	result := &gqlsdk.InitSubscriptionOutput{
-		AccountID: accountMutationResp.InsertSaasAccount.Returning[0].ID,
+		IDAccount: accountMutationResp.InsertSaasAccount.Returning[0].ID,
 	}
 
 	err = hshttp.WriteBody(w, result)

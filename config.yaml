@@ -12,15 +12,19 @@ subastas:
     public: public
     private: private
 authz:
-  jwks:
-    url: "https://something.eu.auth0.com/.well-known/jwks.json"
+  oidc:
+    jwks:
+      url: "https://something.eu.auth0.com/.well-known/jwks.json"
+    headerNames:
+      dcodedJwt: X-Hasura-Saas-Decoded-Jwt
   users:
     anonymous: anonymous
   roles:
-    loggedIn: user
     anonymous: anonymous
-    admin: admin
     accountOwner: account_owner
+    loggedIn: logger_in
+  accounts:
+    anonymous: anonymous
 graphql:
   url: "http://localhost:8082/v1/graphql"
   hasura:
@@ -55,3 +59,6 @@ subscription:
     webhookSecret: whsec_xxx
     domain: yyyy
     apiKey: sk_test_xxxx
+saas:
+  server:
+    listenAddress: ":1340"

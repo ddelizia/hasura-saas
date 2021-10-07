@@ -128,7 +128,7 @@ func (h *ChangeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	logrus.Debug("building response")
 	result := &gqlsdk.ChangeSubscriptionOutput{
-		AccountID: subscription.authzInfo.AccountId,
+		IDAccount: subscription.authzInfo.AccountId,
 		IsActive:  updatedStatus.UpdateSubscriptionStatus.Returning[0].IsActive,
 	}
 
