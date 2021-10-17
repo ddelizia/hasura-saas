@@ -35,7 +35,7 @@ type ChangeSubscriptionOutput struct {
 }
 
 type CreateSubscriptionInput struct {
-	PaymentMethodID string `json:"payment_method_id"`
+	PaymentMethodID *string `json:"payment_method_id,omitempty"`
 }
 
 type CreateSubscriptionOutput struct {
@@ -50,6 +50,19 @@ type InitSubscriptionInput struct {
 
 type InitSubscriptionOutput struct {
 	IDAccount string `json:"id_account"`
+}
+
+// Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
+type IntComparisonExp struct {
+	Eq     *int64  `json:"_eq,omitempty"`
+	Gt     *int64  `json:"_gt,omitempty"`
+	Gte    *int64  `json:"_gte,omitempty"`
+	In     []int64 `json:"_in,omitempty"`
+	IsNull *bool   `json:"_is_null,omitempty"`
+	Lt     *int64  `json:"_lt,omitempty"`
+	Lte    *int64  `json:"_lte,omitempty"`
+	Neq    *int64  `json:"_neq,omitempty"`
+	Nin    []int64 `json:"_nin,omitempty"`
 }
 
 type RetrySubscriptionInput struct {
@@ -132,6 +145,19 @@ type JsonbComparisonExp struct {
 	Lte        map[string]interface{}   `json:"_lte,omitempty"`
 	Neq        map[string]interface{}   `json:"_neq,omitempty"`
 	Nin        []map[string]interface{} `json:"_nin,omitempty"`
+}
+
+// Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'.
+type NumericComparisonExp struct {
+	Eq     *string  `json:"_eq,omitempty"`
+	Gt     *string  `json:"_gt,omitempty"`
+	Gte    *string  `json:"_gte,omitempty"`
+	In     []string `json:"_in,omitempty"`
+	IsNull *bool    `json:"_is_null,omitempty"`
+	Lt     *string  `json:"_lt,omitempty"`
+	Lte    *string  `json:"_lte,omitempty"`
+	Neq    *string  `json:"_neq,omitempty"`
+	Nin    []string `json:"_nin,omitempty"`
 }
 
 // columns and relationships of "saas_account"
@@ -778,6 +804,8 @@ type SaasUserAccountOrderBy struct {
 type SubscriptionActivePlan struct {
 	Description *string `json:"description,omitempty"`
 	ID          *string `json:"id,omitempty"`
+	Price       *string `json:"price,omitempty"`
+	TrialDays   *int64  `json:"trial_days,omitempty"`
 }
 
 // aggregated selection of "subscription_active_plan"
@@ -788,9 +816,23 @@ type SubscriptionActivePlanAggregate struct {
 
 // aggregate fields of "subscription_active_plan"
 type SubscriptionActivePlanAggregateFields struct {
-	Count int64                            `json:"count"`
-	Max   *SubscriptionActivePlanMaxFields `json:"max,omitempty"`
-	Min   *SubscriptionActivePlanMinFields `json:"min,omitempty"`
+	Avg        *SubscriptionActivePlanAvgFields        `json:"avg,omitempty"`
+	Count      int64                                   `json:"count"`
+	Max        *SubscriptionActivePlanMaxFields        `json:"max,omitempty"`
+	Min        *SubscriptionActivePlanMinFields        `json:"min,omitempty"`
+	Stddev     *SubscriptionActivePlanStddevFields     `json:"stddev,omitempty"`
+	StddevPop  *SubscriptionActivePlanStddevPopFields  `json:"stddev_pop,omitempty"`
+	StddevSamp *SubscriptionActivePlanStddevSampFields `json:"stddev_samp,omitempty"`
+	Sum        *SubscriptionActivePlanSumFields        `json:"sum,omitempty"`
+	VarPop     *SubscriptionActivePlanVarPopFields     `json:"var_pop,omitempty"`
+	VarSamp    *SubscriptionActivePlanVarSampFields    `json:"var_samp,omitempty"`
+	Variance   *SubscriptionActivePlanVarianceFields   `json:"variance,omitempty"`
+}
+
+// aggregate avg on columns
+type SubscriptionActivePlanAvgFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
 }
 
 // Boolean expression to filter rows from the table "subscription_active_plan". All fields are combined with a logical 'AND'.
@@ -800,24 +842,38 @@ type SubscriptionActivePlanBoolExp struct {
 	Or          []*SubscriptionActivePlanBoolExp `json:"_or,omitempty"`
 	Description *StringComparisonExp             `json:"description,omitempty"`
 	ID          *StringComparisonExp             `json:"id,omitempty"`
+	Price       *NumericComparisonExp            `json:"price,omitempty"`
+	TrialDays   *IntComparisonExp                `json:"trial_days,omitempty"`
+}
+
+// input type for incrementing numeric columns in table "subscription_active_plan"
+type SubscriptionActivePlanIncInput struct {
+	Price     *string `json:"price,omitempty"`
+	TrialDays *int64  `json:"trial_days,omitempty"`
 }
 
 // input type for inserting data into table "subscription_active_plan"
 type SubscriptionActivePlanInsertInput struct {
 	Description *string `json:"description,omitempty"`
 	ID          *string `json:"id,omitempty"`
+	Price       *string `json:"price,omitempty"`
+	TrialDays   *int64  `json:"trial_days,omitempty"`
 }
 
 // aggregate max on columns
 type SubscriptionActivePlanMaxFields struct {
 	Description *string `json:"description,omitempty"`
 	ID          *string `json:"id,omitempty"`
+	Price       *string `json:"price,omitempty"`
+	TrialDays   *int64  `json:"trial_days,omitempty"`
 }
 
 // aggregate min on columns
 type SubscriptionActivePlanMinFields struct {
 	Description *string `json:"description,omitempty"`
 	ID          *string `json:"id,omitempty"`
+	Price       *string `json:"price,omitempty"`
+	TrialDays   *int64  `json:"trial_days,omitempty"`
 }
 
 // response of any mutation on the table "subscription_active_plan"
@@ -832,12 +888,58 @@ type SubscriptionActivePlanMutationResponse struct {
 type SubscriptionActivePlanOrderBy struct {
 	Description *OrderBy `json:"description,omitempty"`
 	ID          *OrderBy `json:"id,omitempty"`
+	Price       *OrderBy `json:"price,omitempty"`
+	TrialDays   *OrderBy `json:"trial_days,omitempty"`
 }
 
 // input type for updating data in table "subscription_active_plan"
 type SubscriptionActivePlanSetInput struct {
 	Description *string `json:"description,omitempty"`
 	ID          *string `json:"id,omitempty"`
+	Price       *string `json:"price,omitempty"`
+	TrialDays   *int64  `json:"trial_days,omitempty"`
+}
+
+// aggregate stddev on columns
+type SubscriptionActivePlanStddevFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
+}
+
+// aggregate stddev_pop on columns
+type SubscriptionActivePlanStddevPopFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
+}
+
+// aggregate stddev_samp on columns
+type SubscriptionActivePlanStddevSampFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
+}
+
+// aggregate sum on columns
+type SubscriptionActivePlanSumFields struct {
+	Price     *string `json:"price,omitempty"`
+	TrialDays *int64  `json:"trial_days,omitempty"`
+}
+
+// aggregate var_pop on columns
+type SubscriptionActivePlanVarPopFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
+}
+
+// aggregate var_samp on columns
+type SubscriptionActivePlanVarSampFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
+}
+
+// aggregate variance on columns
+type SubscriptionActivePlanVarianceFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
 }
 
 // columns and relationships of "subscription_customer"
@@ -1076,14 +1178,17 @@ type SubscriptionEventSetInput struct {
 // columns and relationships of "subscription_plan"
 type SubscriptionPlan struct {
 	CreatedAt   string  `json:"created_at"`
+	Currency    *string `json:"currency,omitempty"`
 	Description string  `json:"description"`
 	ID          string  `json:"id"`
 	IsActive    bool    `json:"is_active"`
+	Price       *string `json:"price,omitempty"`
 	StripeCode  *string `json:"stripe_code,omitempty"`
 	// An array relationship
 	SubscriptionStatuses []*SubscriptionStatus `json:"subscription_statuses,omitempty"`
 	// An aggregate relationship
 	SubscriptionStatusesAggregate *SubscriptionStatusAggregate `json:"subscription_statuses_aggregate,omitempty"`
+	TrialDays                     *int64                       `json:"trial_days,omitempty"`
 	UpdatedAt                     string                       `json:"updated_at"`
 }
 
@@ -1095,9 +1200,23 @@ type SubscriptionPlanAggregate struct {
 
 // aggregate fields of "subscription_plan"
 type SubscriptionPlanAggregateFields struct {
-	Count int64                      `json:"count"`
-	Max   *SubscriptionPlanMaxFields `json:"max,omitempty"`
-	Min   *SubscriptionPlanMinFields `json:"min,omitempty"`
+	Avg        *SubscriptionPlanAvgFields        `json:"avg,omitempty"`
+	Count      int64                             `json:"count"`
+	Max        *SubscriptionPlanMaxFields        `json:"max,omitempty"`
+	Min        *SubscriptionPlanMinFields        `json:"min,omitempty"`
+	Stddev     *SubscriptionPlanStddevFields     `json:"stddev,omitempty"`
+	StddevPop  *SubscriptionPlanStddevPopFields  `json:"stddev_pop,omitempty"`
+	StddevSamp *SubscriptionPlanStddevSampFields `json:"stddev_samp,omitempty"`
+	Sum        *SubscriptionPlanSumFields        `json:"sum,omitempty"`
+	VarPop     *SubscriptionPlanVarPopFields     `json:"var_pop,omitempty"`
+	VarSamp    *SubscriptionPlanVarSampFields    `json:"var_samp,omitempty"`
+	Variance   *SubscriptionPlanVarianceFields   `json:"variance,omitempty"`
+}
+
+// aggregate avg on columns
+type SubscriptionPlanAvgFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
 }
 
 // Boolean expression to filter rows from the table "subscription_plan". All fields are combined with a logical 'AND'.
@@ -1106,40 +1225,58 @@ type SubscriptionPlanBoolExp struct {
 	Not                  *SubscriptionPlanBoolExp   `json:"_not,omitempty"`
 	Or                   []*SubscriptionPlanBoolExp `json:"_or,omitempty"`
 	CreatedAt            *TimestamptzComparisonExp  `json:"created_at,omitempty"`
+	Currency             *StringComparisonExp       `json:"currency,omitempty"`
 	Description          *StringComparisonExp       `json:"description,omitempty"`
 	ID                   *StringComparisonExp       `json:"id,omitempty"`
 	IsActive             *BooleanComparisonExp      `json:"is_active,omitempty"`
+	Price                *NumericComparisonExp      `json:"price,omitempty"`
 	StripeCode           *StringComparisonExp       `json:"stripe_code,omitempty"`
 	SubscriptionStatuses *SubscriptionStatusBoolExp `json:"subscription_statuses,omitempty"`
+	TrialDays            *IntComparisonExp          `json:"trial_days,omitempty"`
 	UpdatedAt            *TimestamptzComparisonExp  `json:"updated_at,omitempty"`
+}
+
+// input type for incrementing numeric columns in table "subscription_plan"
+type SubscriptionPlanIncInput struct {
+	Price     *string `json:"price,omitempty"`
+	TrialDays *int64  `json:"trial_days,omitempty"`
 }
 
 // input type for inserting data into table "subscription_plan"
 type SubscriptionPlanInsertInput struct {
 	CreatedAt            *string                              `json:"created_at,omitempty"`
+	Currency             *string                              `json:"currency,omitempty"`
 	Description          *string                              `json:"description,omitempty"`
 	ID                   *string                              `json:"id,omitempty"`
 	IsActive             *bool                                `json:"is_active,omitempty"`
+	Price                *string                              `json:"price,omitempty"`
 	StripeCode           *string                              `json:"stripe_code,omitempty"`
 	SubscriptionStatuses *SubscriptionStatusArrRelInsertInput `json:"subscription_statuses,omitempty"`
+	TrialDays            *int64                               `json:"trial_days,omitempty"`
 	UpdatedAt            *string                              `json:"updated_at,omitempty"`
 }
 
 // aggregate max on columns
 type SubscriptionPlanMaxFields struct {
 	CreatedAt   *string `json:"created_at,omitempty"`
+	Currency    *string `json:"currency,omitempty"`
 	Description *string `json:"description,omitempty"`
 	ID          *string `json:"id,omitempty"`
+	Price       *string `json:"price,omitempty"`
 	StripeCode  *string `json:"stripe_code,omitempty"`
+	TrialDays   *int64  `json:"trial_days,omitempty"`
 	UpdatedAt   *string `json:"updated_at,omitempty"`
 }
 
 // aggregate min on columns
 type SubscriptionPlanMinFields struct {
 	CreatedAt   *string `json:"created_at,omitempty"`
+	Currency    *string `json:"currency,omitempty"`
 	Description *string `json:"description,omitempty"`
 	ID          *string `json:"id,omitempty"`
+	Price       *string `json:"price,omitempty"`
 	StripeCode  *string `json:"stripe_code,omitempty"`
+	TrialDays   *int64  `json:"trial_days,omitempty"`
 	UpdatedAt   *string `json:"updated_at,omitempty"`
 }
 
@@ -1168,11 +1305,14 @@ type SubscriptionPlanOnConflict struct {
 // Ordering options when selecting data from "subscription_plan".
 type SubscriptionPlanOrderBy struct {
 	CreatedAt                     *OrderBy                            `json:"created_at,omitempty"`
+	Currency                      *OrderBy                            `json:"currency,omitempty"`
 	Description                   *OrderBy                            `json:"description,omitempty"`
 	ID                            *OrderBy                            `json:"id,omitempty"`
 	IsActive                      *OrderBy                            `json:"is_active,omitempty"`
+	Price                         *OrderBy                            `json:"price,omitempty"`
 	StripeCode                    *OrderBy                            `json:"stripe_code,omitempty"`
 	SubscriptionStatusesAggregate *SubscriptionStatusAggregateOrderBy `json:"subscription_statuses_aggregate,omitempty"`
+	TrialDays                     *OrderBy                            `json:"trial_days,omitempty"`
 	UpdatedAt                     *OrderBy                            `json:"updated_at,omitempty"`
 }
 
@@ -1184,11 +1324,56 @@ type SubscriptionPlanPkColumnsInput struct {
 // input type for updating data in table "subscription_plan"
 type SubscriptionPlanSetInput struct {
 	CreatedAt   *string `json:"created_at,omitempty"`
+	Currency    *string `json:"currency,omitempty"`
 	Description *string `json:"description,omitempty"`
 	ID          *string `json:"id,omitempty"`
 	IsActive    *bool   `json:"is_active,omitempty"`
+	Price       *string `json:"price,omitempty"`
 	StripeCode  *string `json:"stripe_code,omitempty"`
+	TrialDays   *int64  `json:"trial_days,omitempty"`
 	UpdatedAt   *string `json:"updated_at,omitempty"`
+}
+
+// aggregate stddev on columns
+type SubscriptionPlanStddevFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
+}
+
+// aggregate stddev_pop on columns
+type SubscriptionPlanStddevPopFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
+}
+
+// aggregate stddev_samp on columns
+type SubscriptionPlanStddevSampFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
+}
+
+// aggregate sum on columns
+type SubscriptionPlanSumFields struct {
+	Price     *string `json:"price,omitempty"`
+	TrialDays *int64  `json:"trial_days,omitempty"`
+}
+
+// aggregate var_pop on columns
+type SubscriptionPlanVarPopFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
+}
+
+// aggregate var_samp on columns
+type SubscriptionPlanVarSampFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
+}
+
+// aggregate variance on columns
+type SubscriptionPlanVarianceFields struct {
+	Price     *float64 `json:"price,omitempty"`
+	TrialDays *float64 `json:"trial_days,omitempty"`
 }
 
 type SubscriptionRoot struct {
@@ -2188,16 +2373,22 @@ const (
 	SubscriptionActivePlanSelectColumnDescription SubscriptionActivePlanSelectColumn = "description"
 	// column name
 	SubscriptionActivePlanSelectColumnID SubscriptionActivePlanSelectColumn = "id"
+	// column name
+	SubscriptionActivePlanSelectColumnPrice SubscriptionActivePlanSelectColumn = "price"
+	// column name
+	SubscriptionActivePlanSelectColumnTrialDays SubscriptionActivePlanSelectColumn = "trial_days"
 )
 
 var AllSubscriptionActivePlanSelectColumn = []SubscriptionActivePlanSelectColumn{
 	SubscriptionActivePlanSelectColumnDescription,
 	SubscriptionActivePlanSelectColumnID,
+	SubscriptionActivePlanSelectColumnPrice,
+	SubscriptionActivePlanSelectColumnTrialDays,
 }
 
 func (e SubscriptionActivePlanSelectColumn) IsValid() bool {
 	switch e {
-	case SubscriptionActivePlanSelectColumnDescription, SubscriptionActivePlanSelectColumnID:
+	case SubscriptionActivePlanSelectColumnDescription, SubscriptionActivePlanSelectColumnID, SubscriptionActivePlanSelectColumnPrice, SubscriptionActivePlanSelectColumnTrialDays:
 		return true
 	}
 	return false
@@ -2569,29 +2760,38 @@ const (
 	// column name
 	SubscriptionPlanSelectColumnCreatedAt SubscriptionPlanSelectColumn = "created_at"
 	// column name
+	SubscriptionPlanSelectColumnCurrency SubscriptionPlanSelectColumn = "currency"
+	// column name
 	SubscriptionPlanSelectColumnDescription SubscriptionPlanSelectColumn = "description"
 	// column name
 	SubscriptionPlanSelectColumnID SubscriptionPlanSelectColumn = "id"
 	// column name
 	SubscriptionPlanSelectColumnIsActive SubscriptionPlanSelectColumn = "is_active"
 	// column name
+	SubscriptionPlanSelectColumnPrice SubscriptionPlanSelectColumn = "price"
+	// column name
 	SubscriptionPlanSelectColumnStripeCode SubscriptionPlanSelectColumn = "stripe_code"
+	// column name
+	SubscriptionPlanSelectColumnTrialDays SubscriptionPlanSelectColumn = "trial_days"
 	// column name
 	SubscriptionPlanSelectColumnUpdatedAt SubscriptionPlanSelectColumn = "updated_at"
 )
 
 var AllSubscriptionPlanSelectColumn = []SubscriptionPlanSelectColumn{
 	SubscriptionPlanSelectColumnCreatedAt,
+	SubscriptionPlanSelectColumnCurrency,
 	SubscriptionPlanSelectColumnDescription,
 	SubscriptionPlanSelectColumnID,
 	SubscriptionPlanSelectColumnIsActive,
+	SubscriptionPlanSelectColumnPrice,
 	SubscriptionPlanSelectColumnStripeCode,
+	SubscriptionPlanSelectColumnTrialDays,
 	SubscriptionPlanSelectColumnUpdatedAt,
 }
 
 func (e SubscriptionPlanSelectColumn) IsValid() bool {
 	switch e {
-	case SubscriptionPlanSelectColumnCreatedAt, SubscriptionPlanSelectColumnDescription, SubscriptionPlanSelectColumnID, SubscriptionPlanSelectColumnIsActive, SubscriptionPlanSelectColumnStripeCode, SubscriptionPlanSelectColumnUpdatedAt:
+	case SubscriptionPlanSelectColumnCreatedAt, SubscriptionPlanSelectColumnCurrency, SubscriptionPlanSelectColumnDescription, SubscriptionPlanSelectColumnID, SubscriptionPlanSelectColumnIsActive, SubscriptionPlanSelectColumnPrice, SubscriptionPlanSelectColumnStripeCode, SubscriptionPlanSelectColumnTrialDays, SubscriptionPlanSelectColumnUpdatedAt:
 		return true
 	}
 	return false
@@ -2625,29 +2825,38 @@ const (
 	// column name
 	SubscriptionPlanUpdateColumnCreatedAt SubscriptionPlanUpdateColumn = "created_at"
 	// column name
+	SubscriptionPlanUpdateColumnCurrency SubscriptionPlanUpdateColumn = "currency"
+	// column name
 	SubscriptionPlanUpdateColumnDescription SubscriptionPlanUpdateColumn = "description"
 	// column name
 	SubscriptionPlanUpdateColumnID SubscriptionPlanUpdateColumn = "id"
 	// column name
 	SubscriptionPlanUpdateColumnIsActive SubscriptionPlanUpdateColumn = "is_active"
 	// column name
+	SubscriptionPlanUpdateColumnPrice SubscriptionPlanUpdateColumn = "price"
+	// column name
 	SubscriptionPlanUpdateColumnStripeCode SubscriptionPlanUpdateColumn = "stripe_code"
+	// column name
+	SubscriptionPlanUpdateColumnTrialDays SubscriptionPlanUpdateColumn = "trial_days"
 	// column name
 	SubscriptionPlanUpdateColumnUpdatedAt SubscriptionPlanUpdateColumn = "updated_at"
 )
 
 var AllSubscriptionPlanUpdateColumn = []SubscriptionPlanUpdateColumn{
 	SubscriptionPlanUpdateColumnCreatedAt,
+	SubscriptionPlanUpdateColumnCurrency,
 	SubscriptionPlanUpdateColumnDescription,
 	SubscriptionPlanUpdateColumnID,
 	SubscriptionPlanUpdateColumnIsActive,
+	SubscriptionPlanUpdateColumnPrice,
 	SubscriptionPlanUpdateColumnStripeCode,
+	SubscriptionPlanUpdateColumnTrialDays,
 	SubscriptionPlanUpdateColumnUpdatedAt,
 }
 
 func (e SubscriptionPlanUpdateColumn) IsValid() bool {
 	switch e {
-	case SubscriptionPlanUpdateColumnCreatedAt, SubscriptionPlanUpdateColumnDescription, SubscriptionPlanUpdateColumnID, SubscriptionPlanUpdateColumnIsActive, SubscriptionPlanUpdateColumnStripeCode, SubscriptionPlanUpdateColumnUpdatedAt:
+	case SubscriptionPlanUpdateColumnCreatedAt, SubscriptionPlanUpdateColumnCurrency, SubscriptionPlanUpdateColumnDescription, SubscriptionPlanUpdateColumnID, SubscriptionPlanUpdateColumnIsActive, SubscriptionPlanUpdateColumnPrice, SubscriptionPlanUpdateColumnStripeCode, SubscriptionPlanUpdateColumnTrialDays, SubscriptionPlanUpdateColumnUpdatedAt:
 		return true
 	}
 	return false
