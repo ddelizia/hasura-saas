@@ -12,6 +12,7 @@ query GetAccountInfoForCreatingSubscription ($id: uuid!) {
       stripe_subscription_id
       subscription_plan {
         stripe_code
+        trial_days
       }
     }
   }

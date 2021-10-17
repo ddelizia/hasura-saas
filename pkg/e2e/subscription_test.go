@@ -17,6 +17,10 @@ import (
 	"github.com/stripe/stripe-go/paymentmethod"
 )
 
+const (
+	PLAN_FREE, PLAN_BASIC, PLAN_PREMIUM, PLAN_BASIC_TRIAL = "free", "basic", "premium", "basic_trial"
+)
+
 func generateAccountName() string {
 	return "subscription_test_account_" + uuid.NewString()
 }
@@ -40,7 +44,7 @@ func createPaymentMethod(number, expMonth, expYear, cvc string) string {
 	return paymentMethodResp.ID
 }
 
-func initSubscription() map[string]interface{} {
+func initSubscription(plan string) map[string]interface{} {
 	bodyInit := map[string]interface{}{}
 
 	err := e2e.GraphqlService.Execute(
@@ -50,7 +54,7 @@ func initSubscription() map[string]interface{} {
 			subscription_init ( data: { account_name: "%0s", id_plan: "%1s" } ) {
 				id_account
 			}
-		}`, generateAccountName(), "basic"),
+		}`, generateAccountName(), plan),
 		[]gqlreq.RequestHeader{
 			{Key: "x-hasura-account-id", Value: "no-account"},
 			{Key: "x-hasura-role", Value: "logged_in"},
@@ -108,7 +112,7 @@ var _ = Describe("subscription e2e", func() {
 
 	It("should be able to execute complete payment flow with the default card", func() {
 
-		responseInit := initSubscription()
+		responseInit := initSubscription(PLAN_BASIC)
 		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		responseCreate := createSubscription(accountID, "4242424242424242", "01", "2030", "314")
@@ -120,7 +124,7 @@ var _ = Describe("subscription e2e", func() {
 
 	It("should be able to execute a payment with 3d authentication", func() {
 
-		responseInit := initSubscription()
+		responseInit := initSubscription(PLAN_BASIC)
 		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		responseCreate := createSubscription(accountID, "4000002760003184", "01", "2030", "314")
@@ -131,7 +135,7 @@ var _ = Describe("subscription e2e", func() {
 
 	It("should be able to retry when payment is not successful", func() {
 
-		responseInit := initSubscription()
+		responseInit := initSubscription(PLAN_BASIC)
 		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		responseCreate := createSubscription(accountID, "4000002760003184", "01", "2030", "314")
@@ -168,7 +172,7 @@ var _ = Describe("subscription e2e", func() {
 
 	It("should be able to change an existing plan", func() {
 
-		responseInit := initSubscription()
+		responseInit := initSubscription(PLAN_BASIC)
 		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		responseCreate := createSubscription(accountID, "4242424242424242", "01", "2030", "314")
@@ -204,7 +208,7 @@ var _ = Describe("subscription e2e", func() {
 
 	It("should be able to crete and cancel subscription", func() {
 
-		responseInit := initSubscription()
+		responseInit := initSubscription(PLAN_BASIC)
 		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		_ = createSubscription(accountID, "4242424242424242", "01", "2030", "314")
@@ -235,7 +239,7 @@ var _ = Describe("subscription e2e", func() {
 
 	It("should be able to cancel subscription if it is not account owner", func() {
 
-		responseInit := initSubscription()
+		responseInit := initSubscription(PLAN_BASIC)
 		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
 
 		_ = createSubscription(accountID, "4242424242424242", "01", "2030", "314")
@@ -260,6 +264,72 @@ var _ = Describe("subscription e2e", func() {
 		)
 
 		Expect(err).ToNot(BeNil())
+	})
+
+	It("should be able to create a subscription to the free plan without creditcard info", func() {
+
+		responseInit := initSubscription(PLAN_FREE)
+		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
+
+		bodyCreate := map[string]interface{}{}
+
+		err := e2e.GraphqlService.Execute(
+			context.Background(),
+			`
+			mutation CreateSubscription {
+				subscription_create (data: {}) {
+					id_account,
+					is_active
+				}
+			}`,
+			[]gqlreq.RequestHeader{
+				{Key: "x-hasura-account-id", Value: accountID},
+				{Key: "x-hasura-role", Value: "account_owner"},
+				{Key: "x-hasura-user-id", Value: "user1"},
+			},
+			[]gqlreq.RequestVar{},
+			true,
+			&bodyCreate,
+		)
+
+		isActive, _ := ask.For(bodyCreate, "subscription_create.is_active").Bool(false)
+
+		// Then
+		Expect(err).To(BeNil())
+		Expect(isActive).To(BeTrue())
+	})
+
+	It("should be able to create a subscription to the non free plan with trial", func() {
+
+		responseInit := initSubscription(PLAN_BASIC_TRIAL)
+		accountID, _ := ask.For(responseInit, "subscription_init.id_account").String("")
+
+		bodyCreate := map[string]interface{}{}
+
+		err := e2e.GraphqlService.Execute(
+			context.Background(),
+			`
+			mutation CreateSubscription {
+				subscription_create (data: {}) {
+					id_account,
+					is_active
+				}
+			}`,
+			[]gqlreq.RequestHeader{
+				{Key: "x-hasura-account-id", Value: accountID},
+				{Key: "x-hasura-role", Value: "account_owner"},
+				{Key: "x-hasura-user-id", Value: "user1"},
+			},
+			[]gqlreq.RequestVar{},
+			true,
+			&bodyCreate,
+		)
+
+		isActive, _ := ask.For(bodyCreate, "subscription_create.is_active").Bool(false)
+
+		// Then
+		Expect(err).To(BeNil())
+		Expect(isActive).To(BeTrue())
 	})
 
 })

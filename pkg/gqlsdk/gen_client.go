@@ -154,6 +154,7 @@ type QueryGetAccountInfoForCreatingSubscription struct {
 			StripeSubscriptionID *string "json:\"stripe_subscription_id\" graphql:\"stripe_subscription_id\""
 			SubscriptionPlan     struct {
 				StripeCode *string "json:\"stripe_code\" graphql:\"stripe_code\""
+				TrialDays  *int64  "json:\"trial_days\" graphql:\"trial_days\""
 			} "json:\"subscription_plan\" graphql:\"subscription_plan\""
 		} "json:\"subscription_status\" graphql:\"subscription_status\""
 	} "json:\"saas_account\" graphql:\"saas_account\""
@@ -307,6 +308,7 @@ const GetAccountInfoForCreatingSubscriptionDocument = `query GetAccountInfoForCr
 			stripe_subscription_id
 			subscription_plan {
 				stripe_code
+				trial_days
 			}
 		}
 	}

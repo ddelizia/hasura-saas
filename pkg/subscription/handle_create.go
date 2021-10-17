@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/ddelizia/hasura-saas/pkg/gqlreq"
 	"github.com/ddelizia/hasura-saas/pkg/gqlsdk"
@@ -67,7 +68,8 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ser, err := attachPaymentMethodToStripeCustomer(
 		accountInfoForCreatingSubscription.SaasAccount[0].SubscriptionCustomer.StripeCustomer,
 		actionPayload.Input.Data.PaymentMethodID,
-		*accountInfoForCreatingSubscription.SaasAccount[0].SubscriptionStatus.SubscriptionPlan.StripeCode,
+		accountInfoForCreatingSubscription.SaasAccount[0].SubscriptionStatus.SubscriptionPlan.StripeCode,
+		accountInfoForCreatingSubscription.SaasAccount[0].SubscriptionStatus.SubscriptionPlan.TrialDays,
 	)
 	if err != nil {
 		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "unable create subscription on payment provider"))
@@ -108,51 +110,68 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
  * Update customer invoice settings with the default payment method
  * Create subscription to the plan
 */
-func attachPaymentMethodToStripeCustomer(c string, paymentMethodId string, priceId string) (*stripe.Subscription, error) {
-	// Attach payment method to the customer
-	params := &stripe.PaymentMethodAttachParams{
-		Customer: hstype.NewString(c),
-	}
-	pm, err := paymentmethod.Attach(
-		paymentMethodId,
-		params,
-	)
-	if err != nil {
-		logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error("payment attachment failde")
-		return nil, errorx.InternalError.Wrap(err, "unable to attach payment to the subscription")
-	}
-	logrus.WithFields(logrus.Fields{
-		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(pm),
-		LOG_PARAM_CUSTOMER_ID:     c,
-	}).Debug("payment attached")
+func attachPaymentMethodToStripeCustomer(c string, paymentMethodId, priceId *string, trialDays *int64) (*stripe.Subscription, error) {
 
-	// Update customer invoice settings with the default payment method
-	customerParams := &stripe.CustomerParams{
-		InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
-			DefaultPaymentMethod: stripe.String(pm.ID),
-		},
+	if (priceId == nil){
+		logrus.WithField(LOG_PARAM_STRIPE_PLAN_ID, priceId).Error("stripe price does not exists")
+		return nil, errorx.InternalError.New("stripe price does not exists")
 	}
-	updatedCustomer, err := customer.Update(
-		c,
-		customerParams,
-	)
-	if err != nil {
-		logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error("unable to update customer invoice")
-		return nil, errorx.InternalError.Wrap(err, "unable to update invoice settings")
+
+	if paymentMethodId != nil {
+		// Attach payment method to the customer
+		params := &stripe.PaymentMethodAttachParams{
+			Customer: hstype.NewString(c),
+		}
+		pm, err := paymentmethod.Attach(
+			*paymentMethodId,
+			params,
+		)
+		if err != nil {
+			logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error("payment attachment failed")
+			return nil, errorx.InternalError.Wrap(err, "unable to attach payment to the subscription")
+		}
+		logrus.WithFields(logrus.Fields{
+			LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(pm),
+			LOG_PARAM_CUSTOMER_ID:     c,
+		}).Debug("payment attached")
+
+		// Update customer invoice settings with the default payment method
+		customerParams := &stripe.CustomerParams{
+			InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
+				DefaultPaymentMethod: stripe.String(pm.ID),
+			},
+		}
+		updatedCustomer, err := customer.Update(
+			c,
+			customerParams,
+		)
+		if err != nil {
+			logrus.WithError(err).WithField(LOG_PARAM_CUSTOMER_ID, c).Error("unable to update customer invoice")
+			return nil, errorx.InternalError.Wrap(err, "unable to update invoice settings")
+		}
+		logrus.WithFields(logrus.Fields{
+			LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(updatedCustomer),
+			LOG_PARAM_CUSTOMER_ID:     c,
+		}).Debug("default payment method for customer updated")
+
 	}
-	logrus.WithFields(logrus.Fields{
-		LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(updatedCustomer),
-		LOG_PARAM_CUSTOMER_ID:     c,
-	}).Debug("default payment method for customer updated")
 
 	// Create subscription to the plan
+	var trialEnd *int64 = nil
+	if trialDays != nil {
+		trialEnd = stripe.Int64(time.Now().AddDate(0, 0, int(*trialDays)).Unix())
+		logrus.Debug("trial ends: ", trialEnd)
+	}
+	
+
 	subscriptionParams := &stripe.SubscriptionParams{
 		Customer: stripe.String(c),
 		Items: []*stripe.SubscriptionItemsParams{
 			{
-				Plan: stripe.String(priceId),
+				Plan: stripe.String(*priceId),	
 			},
 		},
+		TrialEnd: trialEnd,
 	}
 	subscriptionParams.AddExpand("latest_invoice.payment_intent")
 	ser, err := sub.New(subscriptionParams)

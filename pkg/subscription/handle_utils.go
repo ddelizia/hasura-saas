@@ -82,7 +82,7 @@ func updateHasuraSubscription(ctx context.Context, sdkSvc gqlsdk.Service, accoun
 		return nil, errorx.InternalError.Wrap(err, "unable to find plan while SetSubscriptioStatus")
 	}
 
-	result, err := sdkSvc.SetSubscriptioStatus(ctx, string(ser.Status), string(ser.Status) == "active", accountId, ser.ID, plan.SubscriptionPlan[0].ID)
+	result, err := sdkSvc.SetSubscriptioStatus(ctx, string(ser.Status), string(ser.Status) == "active" || string(ser.Status) == "trialing", accountId, ser.ID, plan.SubscriptionPlan[0].ID)
 	if err != nil {
 		logrus.WithError(err).Error("not able to execute mutation SetSubscriptioStatus")
 		return nil, errorx.InternalError.Wrap(err, "unable to execute mutation SetSubscriptioStatus")
