@@ -1,0 +1,28 @@
+table:
+  name: saas_user_account
+  schema: public
+select_permissions:
+- permission:
+    columns:
+    - id
+    - name
+    filter:
+      id_user:
+        _eq: X-Hasura-User-Id
+  role: account_admin
+- permission:
+    columns:
+    - id
+    - name
+    filter:
+      id_user:
+        _eq: X-Hasura-User-Id
+  role: account_owner
+- permission:
+    columns:
+    - id
+    - name
+    filter:
+      id_user:
+        _eq: X-Hasura-User-Id
+  role: account_user

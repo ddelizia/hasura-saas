@@ -1,0 +1,34 @@
+table:
+  name: subscription_active_plan
+  schema: public
+select_permissions:
+- permission:
+    columns:
+    - description
+    - id
+    filter: {}
+  role: account_admin
+- permission:
+    columns:
+    - description
+    - id
+    filter: {}
+  role: account_owner
+- permission:
+    columns:
+    - description
+    - id
+    filter: {}
+  role: account_user
+- permission:
+    columns:
+    - description
+    - id
+    filter: {}
+  role: anonymous
+- permission:
+    columns:
+    - description
+    - id
+    filter: {}
+  role: logged_in

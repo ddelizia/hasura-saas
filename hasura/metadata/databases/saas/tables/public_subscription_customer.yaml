@@ -1,0 +1,7 @@
+table:
+  name: subscription_customer
+  schema: public
+object_relationships:
+- name: saas_account
+  using:
+    foreign_key_constraint_on: id_account

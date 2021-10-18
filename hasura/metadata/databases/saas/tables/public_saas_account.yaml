@@ -1,0 +1,36 @@
+table:
+  name: saas_account
+  schema: public
+object_relationships:
+- name: saas_address
+  using:
+    foreign_key_constraint_on: id_address_invoice
+- name: subscription_customer
+  using:
+    foreign_key_constraint_on:
+      column: id_account
+      table:
+        name: subscription_customer
+        schema: public
+- name: subscription_status
+  using:
+    foreign_key_constraint_on:
+      column: id_account
+      table:
+        name: subscription_status
+        schema: public
+array_relationships:
+- name: saas_addresses
+  using:
+    foreign_key_constraint_on:
+      column: id_account
+      table:
+        name: saas_address
+        schema: public
+- name: saas_memberships
+  using:
+    foreign_key_constraint_on:
+      column: id_account
+      table:
+        name: saas_membership
+        schema: public

@@ -58,3 +58,49 @@ jobs:
     
     - name: List go package
       run: ./scripts/go-list.sh ${GITHUB_REF#refs/tags/}
+
+  hasura-release:
+    name: Creating release for hasura artifacts
+    runs-on: ubuntu-latest
+    steps:
+      
+    - uses: actions/checkout@v2
+
+    - name: Build project
+      run: |
+        (cd hasura/metadata && zip -r metadata.zip .)
+        (cd hasura/migrations && zip -r migrations.zip .)
+
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: true
+
+    - name: Upload Release Asset Metadata
+      id: upload-release-asset-metadata
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./hasura/metadata/metadata.zip
+        asset_name: metadata.zip
+        asset_content_type: application/zip
+    
+
+    - name: Upload Release Asset Migrations
+      id: upload-release-asset-migrations
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./hasura/migrations/migrations.zip
+        asset_name: migrations.zip
+        asset_content_type: application/zip

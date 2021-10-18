@@ -1,0 +1,97 @@
+type Query {
+  saas_get_current_account(
+    data: SaasGetCurrentAccountInput!
+  ): SaasGetCurrentAccountOutput
+}
+
+type Mutation {
+  saas_set_current_account(
+    data: SaasSetCurrentAccountInput!
+  ): SaasSetCurrentAccountOutput
+}
+
+type Mutation {
+  subscription_cancel: CancelSubscriptionOutput
+}
+
+type Mutation {
+  subscription_change(
+    data: ChangeSubscriptionInput!
+  ): ChangeSubscriptionOutput
+}
+
+type Mutation {
+  subscription_create(
+    data: CreateSubscriptionInput!
+  ): CreateSubscriptionOutput
+}
+
+type Mutation {
+  subscription_init(
+    data: InitSubscriptionInput!
+  ): InitSubscriptionOutput
+}
+
+type Mutation {
+  subscription_retry(
+    data: RetrySubscriptionInput!
+  ): RetrySubscriptionOutput
+}
+
+input InitSubscriptionInput {
+  account_name: String!
+  id_plan: String!
+}
+
+input CreateSubscriptionInput {
+  payment_method_id: String
+}
+
+input RetrySubscriptionInput {
+  payment_method_id: String!
+}
+
+input ChangeSubscriptionInput {
+  id_plan: String!
+}
+
+input SaasGetCurrentAccountInput {
+  id_user: String!
+}
+
+input SaasSetCurrentAccountInput {
+  id_account: uuid!
+}
+
+type InitSubscriptionOutput {
+  id_account: String!
+}
+
+type CreateSubscriptionOutput {
+  id_account: String!
+  is_active: Boolean!
+}
+
+type RetrySubscriptionOutput {
+  id_account: String!
+  is_active: Boolean!
+}
+
+type CancelSubscriptionOutput {
+  status: String!
+}
+
+type ChangeSubscriptionOutput {
+  id_account: String!
+  is_active: Boolean!
+}
+
+type SaasGetCurrentAccountOutput {
+  id_account: String!
+  id_role: uuid!
+}
+
+type SaasSetCurrentAccountOutput {
+  id_account: uuid!
+}
+

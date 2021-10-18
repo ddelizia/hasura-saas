@@ -1,0 +1,70 @@
+actions:
+- name: saas_get_current_account
+  definition:
+    kind: ""
+    handler: '{{HS_SAAS_BASE_URL}}/getCurrentAccount'
+    forward_client_headers: true
+- name: saas_set_current_account
+  definition:
+    kind: synchronous
+    handler: '{{HS_SAAS_BASE_URL}}/setCurrentAccount'
+  permissions:
+  - role: logged_in
+  - role: account_user
+  - role: account_admin
+  - role: account_owner
+- name: subscription_cancel
+  definition:
+    kind: synchronous
+    handler: '{{HS_SUBSCRIPTION_BASE_URL}}/cancel'
+    forward_client_headers: true
+  permissions:
+  - role: account_owner
+- name: subscription_change
+  definition:
+    kind: synchronous
+    handler: '{{HS_SUBSCRIPTION_BASE_URL}}/change'
+  permissions:
+  - role: account_owner
+- name: subscription_create
+  definition:
+    kind: synchronous
+    handler: '{{HS_SUBSCRIPTION_BASE_URL}}/create'
+    forward_client_headers: true
+  permissions:
+  - role: account_owner
+- name: subscription_init
+  definition:
+    kind: synchronous
+    handler: '{{HS_SUBSCRIPTION_BASE_URL}}/init'
+    forward_client_headers: true
+  permissions:
+  - role: logged_in
+  - role: account_user
+  - role: account_owner
+  - role: account_admin
+- name: subscription_retry
+  definition:
+    kind: synchronous
+    handler: '{{HS_SUBSCRIPTION_BASE_URL}}/retry'
+    forward_client_headers: true
+  permissions:
+  - role: account_owner
+custom_types:
+  enums: []
+  input_objects:
+  - name: InitSubscriptionInput
+  - name: CreateSubscriptionInput
+  - name: RetrySubscriptionInput
+  - name: ChangeSubscriptionInput
+  - name: SaasGetCurrentAccountInput
+  - name: SaasSetCurrentAccountInput
+  objects:
+  - name: InitSubscriptionOutput
+  - name: CreateSubscriptionOutput
+  - name: RetrySubscriptionOutput
+  - name: CancelSubscriptionOutput
+  - name: ChangeSubscriptionOutput
+  - name: SaasGetCurrentAccountOutput
+  - name: SaasSetCurrentAccountOutput
+  scalars: []
