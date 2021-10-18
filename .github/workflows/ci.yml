@@ -69,7 +69,7 @@ jobs:
 
   create_hasura_artifacts:
     name: Creating hasura artifacts
-    needs: ["test_saas"]
+    needs: ["test_hasura"]
     runs-on: ubuntu-latest
     steps: 
     - uses: actions/checkout@v2
