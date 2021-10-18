@@ -39,6 +39,11 @@ jobs:
     - name: Log docker images
       run: ./scripts/docker-push.sh $GITHUB_SHA ${GITHUB_REF#refs/tags/}
 
+    - name: Build hasura
+      run: |
+        (cd hasura/metadata && zip -r metadata.zip .)
+        (cd hasura/migrations && zip -r migrations.zip .)
+
     - name: Upload Release Asset Metadata
       id: upload-release-asset-metadata
       uses: actions/upload-release-asset@v1
@@ -66,6 +71,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '^1.16.5'
     
     - name: List go package
       run: ./scripts/go-list.sh ${GITHUB_REF#refs/tags/}
