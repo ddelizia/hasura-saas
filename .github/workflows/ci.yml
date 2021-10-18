@@ -41,6 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
     - uses: actions/setup-go@v2
       with:
         go-version: '^1.16.5'
@@ -48,12 +49,52 @@ jobs:
     - name: Execute static check
       run: ./scripts/static-check.sh
 
+  test_hasura:
+    name: Test hasura data creation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Starting up docker image
+      run: docker-compose -f docker-compose.test.yml up -d
+
+    - name: Checking docker logs
+      run: docker-compose logs
+    
+    - name: Downloading Hasura CLI
+      run: curl -L https://github.com/hasura/graphql-engine/raw/stable/cli/get.sh | bash
+    
+    - name: Executing tests
+      run: ./scripts/hasura/test.sh
+
+  create_hasura_artifacts:
+    name: Creating hasura artifacts
+    needs: ["test_saas"]
+    runs-on: ubuntu-latest
+    steps: 
+    - uses: actions/checkout@v2
+
+    - name: Migration Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: migrtations-latest
+        path: |
+          ./hasura/migrations
+
+    - name: Metadata Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: metadata-latest
+        path: |
+          ./hasura/metadata
+
   e2e:
     name: End 2 End Tests
     needs: [unit_test, static_analysis]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
     - uses: actions/setup-go@v2
       with:
         go-version: '^1.16.5'

@@ -1,0 +1,132 @@
+table:
+  name: saas_membership
+  schema: public
+object_relationships:
+- name: saas_account
+  using:
+    foreign_key_constraint_on: id_account
+- name: saas_role
+  using:
+    foreign_key_constraint_on: id_role
+insert_permissions:
+- permission:
+    backend_only: false
+    check: {}
+    columns:
+    - id_role
+    - id_user
+    set:
+      id_account: x-hasura-Account-Id
+  role: account_admin
+- permission:
+    backend_only: false
+    check: {}
+    columns:
+    - id_role
+    - id_user
+    set:
+      id_account: x-hasura-Account-Id
+  role: account_owner
+select_permissions:
+- permission:
+    columns:
+    - id
+    - id_role
+    - id_user
+    filter:
+      _and:
+      - id_account:
+          _eq: X-Hasura-Account-Id
+      - _exists:
+          _table:
+            name: subscription_status
+            schema: public
+          _where:
+            _and:
+            - is_active:
+                _eq: true
+            - id_account:
+                _eq: X-Hasura-Account-Id
+  role: account_admin
+- permission:
+    columns:
+    - id
+    - id_role
+    - id_user
+    filter:
+      _and:
+      - id_account:
+          _eq: X-Hasura-Account-Id
+      - _exists:
+          _table:
+            name: subscription_status
+            schema: public
+          _where:
+            _and:
+            - is_active:
+                _eq: true
+            - id_account:
+                _eq: X-Hasura-Account-Id
+  role: account_owner
+- permission:
+    columns:
+    - id
+    - id_account
+    - id_role
+    - id_user
+    filter:
+      _and:
+      - id_account:
+          _eq: X-Hasura-Account-Id
+      - id_user:
+          _eq: X-Hasura-User-Id
+      - _exists:
+          _table:
+            name: subscription_status
+            schema: public
+          _where:
+            _and:
+            - is_active:
+                _eq: true
+            - id_account:
+                _eq: X-Hasura-Account-Id
+  role: account_user
+update_permissions:
+- permission:
+    check: null
+    columns:
+    - id_role
+    - id_user
+    filter:
+      _exists:
+        _table:
+          name: subscription_status
+          schema: public
+        _where:
+          _and:
+          - is_active:
+              _eq: true
+          - id_account:
+              _eq: X-Hasura-Account-Id
+    set:
+      id_account: x-hasura-X-Hasura-Account-Id
+  role: account_admin
+- permission:
+    check: null
+    columns:
+    - id_role
+    - id_user
+    filter:
+      _exists:
+        _table:
+          name: subscription_status
+          schema: public
+        _where:
+          _and:
+          - is_active:
+              _eq: true
+          - id_account:
+              _eq: X-Hasura-Account-Id
+    set:
+      id_account: x-hasura-X-Hasura-Account-Id
+  role: account_owner

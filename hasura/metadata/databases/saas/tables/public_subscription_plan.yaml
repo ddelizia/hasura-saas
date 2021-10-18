@@ -1,0 +1,11 @@
+table:
+  name: subscription_plan
+  schema: public
+array_relationships:
+- name: subscription_statuses
+  using:
+    foreign_key_constraint_on:
+      column: id_plan
+      table:
+        name: subscription_status
+        schema: public

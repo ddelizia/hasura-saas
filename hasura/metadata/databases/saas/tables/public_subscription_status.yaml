@@ -1,0 +1,21 @@
+table:
+  name: subscription_status
+  schema: public
+object_relationships:
+- name: saas_account
+  using:
+    foreign_key_constraint_on: id_account
+- name: subscription_plan
+  using:
+    foreign_key_constraint_on: id_plan
+select_permissions:
+- permission:
+    columns:
+    - id
+    - id_account
+    - is_active
+    - status
+    filter:
+      id_account:
+        _eq: X-Hasura-Account-Id
+  role: account_owner

@@ -1,0 +1,10 @@
+DROP VIEW saas_user_account;
+DROP VIEW subscription_active_plan;
+DROP TABLE subscription_event CASCADE;
+DROP TABLE subscription_customer;
+DROP TABLE subscription_status;
+DROP TABLE subscription_plan;
+DROP TABLE saas_address CASCADE;
+DROP TABLE saas_membership;
+DROP TABLE saas_account;
+DROP TABLE saas_role;

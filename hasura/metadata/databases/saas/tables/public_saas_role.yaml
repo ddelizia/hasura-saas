@@ -1,0 +1,24 @@
+table:
+  name: saas_role
+  schema: public
+array_relationships:
+- name: saas_memberships
+  using:
+    foreign_key_constraint_on:
+      column: id_role
+      table:
+        name: saas_membership
+        schema: public
+select_permissions:
+- permission:
+    columns:
+    - description
+    - id
+    filter: {}
+  role: account_admin
+- permission:
+    columns:
+    - description
+    - id
+    filter: {}
+  role: account_owner
