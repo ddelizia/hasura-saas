@@ -62,3 +62,7 @@ subscription:
 saas:
   server:
     listenAddress: ":1340"
+email:
+  from: "some@email.com"
+  sendgrid:
+    apiKey: "xxxx"
