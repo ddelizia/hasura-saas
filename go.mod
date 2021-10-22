@@ -16,6 +16,8 @@ require (
 	github.com/matryer/is v1.4.0 // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
+	github.com/sendgrid/rest v2.6.5+incompatible // indirect
+	github.com/sendgrid/sendgrid-go v3.10.3+incompatible // indirect
 	github.com/simonnilsson/ask v0.2.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.8.1
