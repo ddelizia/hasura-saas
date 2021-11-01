@@ -30,7 +30,7 @@ services:
       HS_SUBSCRIPTION_BASE_URL: "http://hs-subscription:1340"
       HS_SAAS_BASE_URL: "http://hs-saas:1340"
     volumes:
-    - ./hasura:/data/hasura
+    - ${HASURA_SCHEMA_FOLDER}:/data/hasura
 
   hs-subscription:
     image: golang:1.16

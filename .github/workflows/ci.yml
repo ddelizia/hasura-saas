@@ -21,6 +21,7 @@ env:
   HASURA_GRAPHQL_ADMIN_SECRET: "mysecrethasura"
   POSTGRES_PASSWORD: "postgrespassword"
   REGISTRY: ghcr.io
+  HASURA_SCHEMA_FOLDER: "./hasura-saas-schema"
 
 jobs:
   unit_test:
@@ -81,14 +82,14 @@ jobs:
       with:
         name: migrtations-latest
         path: |
-          ./hasura/migrations
+          ${{ env.HASURA_SCHEMA_FOLDER }}/migrations
 
     - name: Metadata Artifact
       uses: actions/upload-artifact@v2
       with:
         name: metadata-latest
         path: |
-          ./hasura/metadata
+          ${{ env.HASURA_SCHEMA_FOLDER }}/metadata
 
   e2e:
     name: End 2 End Tests

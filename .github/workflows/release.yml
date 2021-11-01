@@ -8,6 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  HASURA_SCHEMA_FOLDER: "./hasura-saas-schema"
 
 jobs:
 
@@ -51,7 +52,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./hasura/metadata/metadata.zip
+        asset_path: ${{ env.HASURA_SCHEMA_FOLDER }}/metadata/metadata.zip
         asset_name: metadata.zip
         asset_content_type: application/zip
     
@@ -62,7 +63,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./hasura/migrations/migrations.zip
+        asset_path: ${{ env.HASURA_SCHEMA_FOLDER }}/migrations/migrations.zip
         asset_name: migrations.zip
         asset_content_type: application/zip
 
