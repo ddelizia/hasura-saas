@@ -1,0 +1,3 @@
+[submodule "hasura-saas-schema"]
+	path = hasura-saas-schema
+	url = git@github.com:ddelizia/hasura-saas-schema.git

@@ -8,6 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  HASURA_SCHEMA_FOLDER: "./hasura-saas-schema"
 
 jobs:
 
@@ -16,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
     - uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
       with:
         registry: ${{ env.REGISTRY }}
@@ -51,7 +54,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./hasura/metadata/metadata.zip
+        asset_path: ${{ env.HASURA_SCHEMA_FOLDER }}/metadata/metadata.zip
         asset_name: metadata.zip
         asset_content_type: application/zip
     
@@ -62,7 +65,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./hasura/migrations/migrations.zip
+        asset_path: ${{ env.HASURA_SCHEMA_FOLDER }}/migrations/migrations.zip
         asset_name: migrations.zip
         asset_content_type: application/zip
 
@@ -71,6 +74,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
 
     - uses: actions/setup-go@v2
       with:

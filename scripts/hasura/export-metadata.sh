@@ -2,4 +2,4 @@
 
 set -e
 
-hasura metadata export --project ./hasura
+hasura metadata export --project $HASURA_SCHEMA_FOLDER

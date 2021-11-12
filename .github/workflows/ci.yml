@@ -21,6 +21,7 @@ env:
   HASURA_GRAPHQL_ADMIN_SECRET: "mysecrethasura"
   POSTGRES_PASSWORD: "postgrespassword"
   REGISTRY: ghcr.io
+  HASURA_SCHEMA_FOLDER: "./hasura-saas-schema"
 
 jobs:
   unit_test:
@@ -28,6 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
     - uses: actions/setup-go@v2
       with:
         go-version: '^1.16.5'
@@ -43,6 +46,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
 
     - uses: actions/setup-go@v2
       with:
@@ -56,6 +61,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
     
     - name: Starting up docker image
       run: docker-compose up -d
@@ -75,20 +82,22 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
 
     - name: Migration Artifact
       uses: actions/upload-artifact@v2
       with:
         name: migrtations-latest
         path: |
-          ./hasura/migrations
+          ${{ env.HASURA_SCHEMA_FOLDER }}/migrations
 
     - name: Metadata Artifact
       uses: actions/upload-artifact@v2
       with:
         name: metadata-latest
         path: |
-          ./hasura/metadata
+          ${{ env.HASURA_SCHEMA_FOLDER }}/metadata
 
   e2e:
     name: End 2 End Tests
@@ -96,6 +105,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
 
     - uses: actions/setup-go@v2
       with:
@@ -110,6 +121,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
     - uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
       with:
         registry: ${{ env.REGISTRY }}
