@@ -43,6 +43,11 @@ func (h *initHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		IDUser:      authzInfo.UserId,
 	})
 
+	if err != nil {
+		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "not able to execute stripe initialization"))
+		return
+	}
+
 	err = hshttp.WriteBody(w, out)
 	if err != nil {
 		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "not able to create response"))

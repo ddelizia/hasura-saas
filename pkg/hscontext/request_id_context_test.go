@@ -25,6 +25,7 @@ var _ = Describe("", func() {
 		// Then
 		// TODO fix
 		//Expect(requestId).To(Equal("request id"))
+		Expect(nil).To(BeNil())
 	})
 
 })
