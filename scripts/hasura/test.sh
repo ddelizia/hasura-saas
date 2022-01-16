@@ -10,6 +10,8 @@ WAIT=10
 echo "⌛️ Wait $WAIT s"
 sleep $WAIT
 
+docker-compose logs
+
 echo "🧪 Initializing the database"
 hasura_init $DATABASE
 
