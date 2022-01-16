@@ -21,19 +21,23 @@ type InputData struct {
 
 type InputPayloadPtr struct {
 	hasura.BasePayload
-	Input *InputData `json:"input"`
+	Input struct {
+		Data *InputData `json:"data"`
+	} `json:"input"`
 }
 
 type InputPayload struct {
 	hasura.BasePayload
-	Input InputData `json:"input"`
+	Input struct {
+		Data InputData `json:"data"`
+	} `json:"input"`
 }
 
 var _ = Describe("ActionBodyContext", func() {
 
 	logrus.SetOutput(ioutil.Discard)
 
-	exampleBody := "{\"session_variables\": {\"varKey\": \"varValue\"}, \"input\": {\"input_key\":\"inputValue\"}}"
+	exampleBody := "{\"session_variables\": {\"varKey\": \"varValue\"}, \"input\": { \"data\": {\"input_key\":\"inputValue\"}}}"
 
 	It("should store data into context", func() {
 		// Given
@@ -85,7 +89,7 @@ var _ = Describe("ActionBodyContext", func() {
 
 	It("should be able to deal with multiple bodies", func() {
 		// Given
-		exampleNewBody := "{\"session_variables\": {\"varKey1\": \"varValue\"}, \"input\": {\"input_key\":\"inputValue2\"}}"
+		exampleNewBody := "{\"session_variables\": {\"varKey1\": \"varValue\"}, \"input\": { \"data\": {\"input_key\":\"inputValue2\"}}}"
 		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(exampleBody))
 		reqNew := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(exampleNewBody))
 		w := httptest.NewRecorder()

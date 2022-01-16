@@ -34,12 +34,12 @@ Handle subscription initialization
 */
 func (h *initHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	data := hscontext.ActionDataValue(r.Context()).(*ActionPayloadInit)
+	data := hscontext.ActionDataValue(r.Context()).(*gqlsdk.InitSubscriptionInput)
 	authzInfo := hscontext.AuthzInfoValue(r.Context())
 
-	out, err := h.StripeInitter.Init(r.Context(), &model.InitInput{
-		AccountName: data.Input.Data.AccountName,
-		IDPlan:      data.Input.Data.IDPlan,
+	got, err := h.StripeInitter.Init(r.Context(), &model.InitInput{
+		AccountName: data.AccountName,
+		IDPlan:      data.IDPlan,
 		IDUser:      authzInfo.UserId,
 	})
 
@@ -48,6 +48,9 @@ func (h *initHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	out := &gqlsdk.InitSubscriptionOutput{
+		IDAccount: got.IDAccount,
+	}
 	err = hshttp.WriteBody(w, out)
 	if err != nil {
 		hshttp.WriteError(w, errorx.InternalError.Wrap(err, "not able to create response"))

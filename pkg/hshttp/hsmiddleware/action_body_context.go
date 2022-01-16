@@ -28,7 +28,8 @@ func ActionBodyToContext(d interface{}) Middleware {
 				return
 			}
 			valueOfPayload := reflect.ValueOf(data).Elem()
-			newCtx := hscontext.WithActionSessionValue(r.Context(), valueOfPayload.FieldByName("SessionVariables").Interface().(map[string]interface{}), valueOfPayload.FieldByName("Input").Interface())
+			dataValue := valueOfPayload.FieldByName("Input").FieldByName("Data").Interface()
+			newCtx := hscontext.WithActionSessionValue(r.Context(), valueOfPayload.FieldByName("SessionVariables").Interface().(map[string]interface{}), dataValue)
 			r = r.WithContext(newCtx)
 			next.ServeHTTP(w, r)
 		})
