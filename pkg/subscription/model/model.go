@@ -9,3 +9,13 @@ type InitInput struct {
 type InitOutput struct {
 	IDAccount string
 }
+
+type CreateInput struct {
+	IDAccount       string
+	IDPaymentMethod string
+}
+
+type CreateOutput struct {
+	IDAccount string
+	IsActive  bool
+}

@@ -74,7 +74,7 @@ func getPlanFromStripePlan(ctx context.Context, sdkSvc gqlsdk.Service, stripe_pl
 	return result, nil
 }
 
-// Updating Hasura subscriptio status information
+// Updating Hasura subscription status information
 func updateHasuraSubscription(ctx context.Context, sdkSvc gqlsdk.Service, accountId string, ser *stripe.Subscription) (*gqlsdk.MutationSetSubscriptioStatus, error) {
 
 	plan, err := getPlanFromStripePlan(ctx, sdkSvc, ser.Plan.ID)

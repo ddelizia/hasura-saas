@@ -68,25 +68,25 @@ func NewStripeInit(gqlreqSvc gqlreq.Service, gqlsdkSvc gqlsdk.Service) StripeIni
 // Init the subscription
 func (s *StripeInit) Init(ctx context.Context, input *model.InitInput) (*model.InitOutput, error) {
 
-	logrus.Debug("make sure plan exists on hasura")
+	logrus.WithContext(ctx).Debug("make sure plan exists on hasura")
 	err := s.checkStripePlanRegisteredOnHasura(ctx, input.IDPlan)
 	if err != nil {
 		return nil, err
 	}
 
-	logrus.Debug("creating customer on stripe")
-	c, err := s.createCustomerOnStripe(input.AccountName)
+	logrus.WithContext(ctx).Debug("creating customer on stripe")
+	c, err := s.createCustomerOnStripe(ctx, input.AccountName)
 	if err != nil {
 		return nil, err
 	}
 
-	logrus.Debug("updating user information on hasura")
+	logrus.WithContext(ctx).Debug("updating user information on hasura")
 	accountMutationResp, err := s.createCustomerSubscriptionOnHasura(ctx, input, c)
 	if err != nil {
 		return nil, err
 	}
 
-	logrus.Debug("building init response")
+	logrus.WithContext(ctx).Debug("building init response")
 	return &model.InitOutput{
 		IDAccount: accountMutationResp.InsertSaasAccount.Returning[0].ID,
 	}, nil
@@ -112,11 +112,9 @@ func (s *StripeInit) checkStripePlanRegisteredOnHasura(ctx context.Context, id s
 		},
 		"provider plan is not available", hstype.NewString("hasura GetStripePlanFromPlan has returned wrong amount of results"),
 	)
-
-	return nil
 }
 
-func (s *StripeInit) createCustomerOnStripe(accountName string) (*stripe.Customer, error) {
+func (s *StripeInit) createCustomerOnStripe(ctx context.Context, accountName string) (*stripe.Customer, error) {
 	c, err := s.StripeNewCustomerFunc(accountName)
 
 	if err != nil {
@@ -127,7 +125,7 @@ func (s *StripeInit) createCustomerOnStripe(accountName string) (*stripe.Custome
 		)
 	}
 
-	logrus.WithFields(logrus.Fields{
+	logrus.WithContext(ctx).WithFields(logrus.Fields{
 		model.LOG_PARAM_STRIPE_RESPONSE: logger.PrintStruct(c),
 		model.LOG_PARAM_CUSTOMER_ID:     c.ID,
 		model.LOG_PARAM_ACCOUNT_NAME:    accountName,

@@ -39,11 +39,13 @@ func main() {
 			hsmiddleware.Json(),
 		)).Methods("POST")
 
-	handlerCreate := subscription.NewCreateHandler(graphqlSevice, sdkService)
+	handlerCreate := subscription.NewCreateHandler(hsStripeService)
 	r.Handle("/create",
 		hsmiddleware.Chain(
 			handlerCreate.ServeHTTP,
 			hsmiddleware.LogRequest(),
+			hsmiddleware.ActionBodyToContext(&subscription.ActionPayloadCreate{}),
+			hsmiddleware.AuthzFromSession(graphqlSevice),
 			hsmiddleware.Json(),
 		)).Methods("POST")
 
