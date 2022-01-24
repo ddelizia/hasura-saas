@@ -14,7 +14,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/mock"
 	"github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/customer"
 )
 
 //////////////////////////////////////
@@ -32,8 +31,6 @@ type StripeInitter interface {
 type StripeInit struct {
 	GqlreqSvc gqlreq.Service
 	GqlsdkSvc gqlsdk.Service
-	// wrap stripe function call for testing purpuses
-	StripeNewCustomerFunc func(accountName string) (*stripe.Customer, error)
 }
 
 //////////////////////////////////////
@@ -55,9 +52,8 @@ func (m *StripeInitMock) Init(ctx context.Context, input *model.InitInput) (*mod
 
 func NewStripeInit(gqlreqSvc gqlreq.Service, gqlsdkSvc gqlsdk.Service) StripeInitter {
 	return &StripeInit{
-		GqlreqSvc:             gqlreqSvc,
-		GqlsdkSvc:             gqlsdkSvc,
-		StripeNewCustomerFunc: stripeNewCustomerFunc,
+		GqlreqSvc: gqlreqSvc,
+		GqlsdkSvc: gqlsdkSvc,
 	}
 }
 
@@ -115,7 +111,9 @@ func (s *StripeInit) checkStripePlanRegisteredOnHasura(ctx context.Context, id s
 }
 
 func (s *StripeInit) createCustomerOnStripe(ctx context.Context, accountName string) (*stripe.Customer, error) {
-	c, err := s.StripeNewCustomerFunc(accountName)
+	c, err := StripeNewCustomerFunc(&stripe.CustomerParams{
+		Description: stripe.String("Stripe customer for account " + accountName),
+	})
 
 	if err != nil {
 		return nil, hserrorx.Wrap(
@@ -153,11 +151,4 @@ func (s *StripeInit) createCustomerSubscriptionOnHasura(ctx context.Context, i *
 		)
 	}
 	return customer, nil
-}
-
-func stripeNewCustomerFunc(accountName string) (*stripe.Customer, error) {
-	params := stripe.CustomerParams{
-		Description: stripe.String("Stripe customer for account " + accountName),
-	}
-	return customer.New(&params)
 }

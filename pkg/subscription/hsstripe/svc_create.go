@@ -14,9 +14,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/mock"
 	"github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/customer"
-	"github.com/stripe/stripe-go/paymentmethod"
-	"github.com/stripe/stripe-go/sub"
 )
 
 //////////////////////////////////////
@@ -34,9 +31,6 @@ type StripeCreator interface {
 type StripeCreate struct {
 	GqlreqSvc gqlreq.Service
 	GqlsdkSvc gqlsdk.Service
-	// wrap stripe function call for testing purpuses
-	StripeAttachPaymentmethodFunc func(id string, params *stripe.PaymentMethodAttachParams) (*stripe.PaymentMethod, error)
-	StripeNewSubFunc              func(params *stripe.SubscriptionParams) (*stripe.Subscription, error)
 }
 
 //////////////////////////////////////
@@ -58,10 +52,8 @@ func (m *StripeCreateMock) Create(ctx context.Context, input *model.CreateInput)
 
 func NewStripeCreate(gqlreqSvc gqlreq.Service, gqlsdkSvc gqlsdk.Service) StripeCreator {
 	return &StripeCreate{
-		GqlreqSvc:                     gqlreqSvc,
-		GqlsdkSvc:                     gqlsdkSvc,
-		StripeAttachPaymentmethodFunc: paymentmethod.Attach,
-		StripeNewSubFunc:              sub.New,
+		GqlreqSvc: gqlreqSvc,
+		GqlsdkSvc: gqlsdkSvc,
 	}
 }
 
@@ -143,7 +135,7 @@ func (s *StripeCreate) attachPaymentMethodToStripeCustomer(ctx context.Context, 
 		params := &stripe.PaymentMethodAttachParams{
 			Customer: hstype.NewString(c),
 		}
-		pm, err := s.StripeAttachPaymentmethodFunc(
+		pm, err := StripeAttachPaymentmethodFunc(
 			*paymentMethodId,
 			params,
 		)
@@ -162,7 +154,7 @@ func (s *StripeCreate) attachPaymentMethodToStripeCustomer(ctx context.Context, 
 				DefaultPaymentMethod: stripe.String(pm.ID),
 			},
 		}
-		updatedCustomer, err := customer.Update(
+		updatedCustomer, err := StripeUpdateCustomerFunc(
 			c,
 			customerParams,
 		)
@@ -194,7 +186,7 @@ func (s *StripeCreate) attachPaymentMethodToStripeCustomer(ctx context.Context, 
 		TrialEnd: trialEnd,
 	}
 	subscriptionParams.AddExpand("latest_invoice.payment_intent")
-	ser, err := s.StripeNewSubFunc(subscriptionParams)
+	ser, err := StripeNewSubFunc(subscriptionParams)
 	if err != nil {
 		logrus.WithContext(ctx).WithError(err).WithField(model.LOG_PARAM_CUSTOMER_ID, c).Error("unable to create subscription")
 		return nil, errorx.InternalError.Wrap(err, "unable to create subscription")
@@ -207,4 +199,3 @@ func (s *StripeCreate) attachPaymentMethodToStripeCustomer(ctx context.Context, 
 
 	return ser, nil
 }
-

@@ -29,20 +29,18 @@ func main() {
 
 	r := mux.NewRouter()
 
-	handlerInit := subscription.NewInitHandler(hsStripeService)
 	r.Handle("/init",
 		hsmiddleware.Chain(
-			handlerInit.ServeHTTP,
+			subscription.NewInitHandler(hsStripeService).ServeHTTP,
 			hsmiddleware.LogRequest(),
 			hsmiddleware.ActionBodyToContext(&subscription.ActionPayloadInit{}),
 			hsmiddleware.AuthzFromSession(graphqlSevice),
 			hsmiddleware.Json(),
 		)).Methods("POST")
 
-	handlerCreate := subscription.NewCreateHandler(hsStripeService)
 	r.Handle("/create",
 		hsmiddleware.Chain(
-			handlerCreate.ServeHTTP,
+			subscription.NewCreateHandler(hsStripeService).ServeHTTP,
 			hsmiddleware.LogRequest(),
 			hsmiddleware.ActionBodyToContext(&subscription.ActionPayloadCreate{}),
 			hsmiddleware.AuthzFromSession(graphqlSevice),
@@ -57,11 +55,12 @@ func main() {
 			hsmiddleware.Json(),
 		)).Methods("POST")
 
-	handlerRetry := subscription.NewRetryHandler(graphqlSevice, sdkService)
 	r.Handle("/retry",
 		hsmiddleware.Chain(
-			handlerRetry.ServeHTTP,
+			subscription.NewRetryHandler(hsStripeService).ServeHTTP,
 			hsmiddleware.LogRequest(),
+			hsmiddleware.ActionBodyToContext(&subscription.ActionPayloadRetry{}),
+			hsmiddleware.AuthzFromSession(graphqlSevice),
 			hsmiddleware.Json(),
 		)).Methods("POST")
 

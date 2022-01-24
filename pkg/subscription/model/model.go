@@ -21,3 +21,13 @@ type CreateOutput struct {
 	IDAccount string
 	IsActive  bool
 }
+
+type RetryInput struct {
+	IDAccount       string
+	IDPaymentMethod hstype.String
+}
+
+type RetryOutput struct {
+	IDAccount string
+	IsActive  bool
+}
