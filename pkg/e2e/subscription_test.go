@@ -47,6 +47,9 @@ func createPaymentMethod(number, expMonth, expYear, cvc string) string {
 func initSubscription(plan string) map[string]interface{} {
 	bodyInit := map[string]interface{}{}
 
+	accountName := generateAccountName()
+	logrus.WithField("test_account_name", accountName).Info("account init")
+
 	err := e2e.GraphqlService.Execute(
 		context.Background(),
 		fmt.Sprintf(`
@@ -54,7 +57,7 @@ func initSubscription(plan string) map[string]interface{} {
 			subscription_init ( data: { account_name: "%0s", id_plan: "%1s" } ) {
 				id_account
 			}
-		}`, generateAccountName(), plan),
+		}`, accountName, plan),
 		[]gqlreq.RequestHeader{
 			{Key: "x-hasura-account-id", Value: "no-account"},
 			{Key: "x-hasura-role", Value: "logged_in"},

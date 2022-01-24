@@ -7,11 +7,13 @@ import (
 	"github.com/ddelizia/hasura-saas/pkg/e2e"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/sirupsen/logrus"
 )
 
 func Test_E2e(t *testing.T) {
 	RegisterFailHandler(Fail)
 
+	logrus.SetLevel(logrus.InfoLevel)
 	os.Setenv("GRAPHQL.HASURA.ADMINSECRET", os.Getenv("HASURA_GRAPHQL_ADMIN_SECRET"))
 	os.Setenv("SUBSCRIPTION.STRIPE.APIKEY", os.Getenv("STRIPE_KEY"))
 	os.Setenv("SUBSCRIPTION.STRIPE.WEBHOOKSECRET", os.Getenv("STRIPE_WEBHOOK_SECRET"))
@@ -24,4 +26,5 @@ func Test_E2e(t *testing.T) {
 		}
 		RunSpecs(t, "[e2e] test suite")
 	}
+
 }

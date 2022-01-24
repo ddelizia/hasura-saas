@@ -5,10 +5,12 @@ set -e
 source ./scripts/hasura/functions.sh
 
 DATABASE="saas"
-WAIT=10
+WAIT=100
 
 echo "⌛️ Wait $WAIT s"
 sleep $WAIT
+
+docker-compose logs
 
 echo "🧪 Initializing the database"
 hasura_init $DATABASE

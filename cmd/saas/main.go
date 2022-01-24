@@ -5,7 +5,7 @@ import (
 
 	"github.com/ddelizia/hasura-saas/pkg/gqlreq"
 	"github.com/ddelizia/hasura-saas/pkg/gqlsdk"
-	"github.com/ddelizia/hasura-saas/pkg/hshttp"
+	"github.com/ddelizia/hasura-saas/pkg/hshttp/hsmiddleware"
 	"github.com/ddelizia/hasura-saas/pkg/logger"
 	"github.com/ddelizia/hasura-saas/pkg/saas"
 	"github.com/gorilla/mux"
@@ -24,17 +24,17 @@ func main() {
 	r := mux.NewRouter()
 
 	handlerSetCurrentAccount := saas.NewSetCurrentAccountHandler(graphqlSevice, sdkService)
-	r.Handle("/setCurrentAccount", hshttp.MiddlewareChain(
+	r.Handle("/setCurrentAccount", hsmiddleware.Chain(
 		handlerSetCurrentAccount.ServeHTTP,
-		hshttp.MiddlewareLogRequest,
-		hshttp.MiddlewareSetContentTypeApplicationJson,
+		hsmiddleware.LogRequest(),
+		hsmiddleware.Json(),
 	)).Methods("POST")
 
 	handlerGetCurrentAccount := saas.NewGetCurrentAccountHandler(graphqlSevice, sdkService)
-	r.Handle("/getCurrentAccount", hshttp.MiddlewareChain(
+	r.Handle("/getCurrentAccount", hsmiddleware.Chain(
 		handlerGetCurrentAccount.ServeHTTP,
-		hshttp.MiddlewareLogRequest,
-		hshttp.MiddlewareSetContentTypeApplicationJson,
+		hsmiddleware.LogRequest(),
+		hsmiddleware.Json(),
 	)).Methods("POST")
 
 	http.Handle("/", r)
