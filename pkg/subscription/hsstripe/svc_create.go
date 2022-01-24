@@ -82,7 +82,7 @@ func (s *StripeCreate) Create(ctx context.Context, input *model.CreateInput) (*m
 	ser, err := s.attachPaymentMethodToStripeCustomer(
 		ctx,
 		accountInfoForCreatingSubscription.SaasAccount[0].SubscriptionCustomer.StripeCustomer,
-		&input.IDPaymentMethod,
+		input.IDPaymentMethod,
 		accountInfoForCreatingSubscription.SaasAccount[0].SubscriptionStatus.SubscriptionPlan.StripeCode,
 		accountInfoForCreatingSubscription.SaasAccount[0].SubscriptionStatus.SubscriptionPlan.TrialDays,
 	)

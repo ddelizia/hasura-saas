@@ -39,7 +39,7 @@ func (h *CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	got, err := h.Stripe.Create(r.Context(), &model.CreateInput{
 		IDAccount:       authzInfo.AccountId,
-		IDPaymentMethod: *data.PaymentMethodID,
+		IDPaymentMethod: data.PaymentMethodID,
 	})
 
 	if err != nil {

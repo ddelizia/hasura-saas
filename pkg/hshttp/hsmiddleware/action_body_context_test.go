@@ -87,6 +87,56 @@ var _ = Describe("ActionBodyContext", func() {
 		Expect(inputData.InputKey).To(Equal("inputValue"))
 	})
 
+	It("should store data into context and when data is empty object", func() {
+		// Given
+		exampleBody := "{\"session_variables\": {\"varKey\": \"varValue\"}, \"input\": { \"data\": {}}}"
+		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(exampleBody))
+		w := httptest.NewRecorder()
+		nextHasBeenCalled := false
+		var sessionVariables map[string]interface{}
+		var inputData InputData
+		mockNext := func(w http.ResponseWriter, r *http.Request) {
+			nextHasBeenCalled = true
+			sessionVariables = hscontext.ActionSessionVariablesValue(r.Context())
+			inputData = hscontext.ActionDataValue(r.Context()).(InputData)
+		}
+
+		// When
+		hsmiddleware.ActionBodyToContext(InputPayload{})(mockNext)(w, req)
+
+		// Then
+		Expect(nextHasBeenCalled).To(BeTrue())
+		Expect(sessionVariables).ToNot(BeNil())
+		Expect(sessionVariables["varKey"]).To(Equal("varValue"))
+		Expect(inputData).ToNot(BeNil())
+		Expect(inputData.InputKey).To(Equal(""))
+	})
+
+	It("should store data into context and when data is nil", func() {
+		// Given
+		exampleBody := "{\"session_variables\": {\"varKey\": \"varValue\"}, \"input\": { }}"
+		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(exampleBody))
+		w := httptest.NewRecorder()
+		nextHasBeenCalled := false
+		var sessionVariables map[string]interface{}
+		var inputData InputData
+		mockNext := func(w http.ResponseWriter, r *http.Request) {
+			nextHasBeenCalled = true
+			sessionVariables = hscontext.ActionSessionVariablesValue(r.Context())
+			inputData = hscontext.ActionDataValue(r.Context()).(InputData)
+		}
+
+		// When
+		hsmiddleware.ActionBodyToContext(InputPayload{})(mockNext)(w, req)
+
+		// Then
+		Expect(nextHasBeenCalled).To(BeTrue())
+		Expect(sessionVariables).ToNot(BeNil())
+		Expect(sessionVariables["varKey"]).To(Equal("varValue"))
+		Expect(inputData).ToNot(BeNil())
+		Expect(inputData.InputKey).To(BeNil())
+	})
+
 	It("should be able to deal with multiple bodies", func() {
 		// Given
 		exampleNewBody := "{\"session_variables\": {\"varKey1\": \"varValue\"}, \"input\": { \"data\": {\"input_key\":\"inputValue2\"}}}"
