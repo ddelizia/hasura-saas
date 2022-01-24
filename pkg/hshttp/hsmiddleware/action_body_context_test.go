@@ -134,7 +134,7 @@ var _ = Describe("ActionBodyContext", func() {
 		Expect(sessionVariables).ToNot(BeNil())
 		Expect(sessionVariables["varKey"]).To(Equal("varValue"))
 		Expect(inputData).ToNot(BeNil())
-		Expect(inputData.InputKey).To(BeNil())
+		Expect(inputData.InputKey).To(Equal("")) // Zero value is stored object is returned anyway
 	})
 
 	It("should be able to deal with multiple bodies", func() {
