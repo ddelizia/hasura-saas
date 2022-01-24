@@ -10,6 +10,7 @@ type Service interface {
 	StripeCreator
 	StripeRetryer
 	StripeCanceler
+	StripeChanger
 }
 
 type service struct {
@@ -17,6 +18,7 @@ type service struct {
 	*StripeCreate
 	*StripeRetry
 	*StripeCancel
+	*StripeChange
 }
 
 func NewService(gqlreqSvc gqlreq.Service, gqlsdkSvc gqlsdk.Service) Service {
@@ -24,10 +26,12 @@ func NewService(gqlreqSvc gqlreq.Service, gqlsdkSvc gqlsdk.Service) Service {
 	stripeCreate := NewStripeCreate(gqlreqSvc, gqlsdkSvc).(*StripeCreate)
 	stripeRetry := NewStripeRetry(gqlreqSvc, gqlsdkSvc).(*StripeRetry)
 	stripeCancel := NewStripeCancel(gqlreqSvc, gqlsdkSvc).(*StripeCancel)
+	stripeChange := NewStripeChange(gqlreqSvc, gqlsdkSvc).(*StripeChange)
 	return &service{
 		StripeInit:   stripeInit,
 		StripeCreate: stripeCreate,
 		StripeRetry:  stripeRetry,
 		StripeCancel: stripeCancel,
+		StripeChange: stripeChange,
 	}
 }

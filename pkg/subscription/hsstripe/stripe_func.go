@@ -30,4 +30,5 @@ var (
 	StripeNewSubFunc    func(params *stripe.SubscriptionParams) (*stripe.Subscription, error)                  = sub.New
 	StripeGetSubFunc    func(id string, params *stripe.SubscriptionParams) (*stripe.Subscription, error)       = sub.Get
 	StripeCancelSubFunc func(id string, params *stripe.SubscriptionCancelParams) (*stripe.Subscription, error) = sub.Cancel
+	StripeUpdateSubFunc func(id string, params *stripe.SubscriptionParams) (*stripe.Subscription, error)       = sub.Update
 )

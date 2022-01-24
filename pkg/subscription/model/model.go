@@ -39,3 +39,13 @@ type CancelInput struct {
 type CancelOutput struct {
 	Status string
 }
+
+type ChangeInput struct {
+	IDAccount string
+	IDPlan    string
+}
+
+type ChangeOutput struct {
+	IDAccount string
+	IsActive  bool
+}

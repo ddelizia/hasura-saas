@@ -65,11 +65,12 @@ func main() {
 			hsmiddleware.Json(),
 		)).Methods("POST")
 
-	handlerChange := subscription.NewChangeHandler(graphqlSevice, sdkService)
 	r.Handle("/change",
 		hsmiddleware.Chain(
-			handlerChange.ServeHTTP,
+			subscription.NewChangeHandler(hsStripeService).ServeHTTP,
 			hsmiddleware.LogRequest(),
+			hsmiddleware.ActionBodyToContext(&subscription.ActionPayloadRetry{}),
+			hsmiddleware.AuthzFromSession(graphqlSevice),
 			hsmiddleware.Json(),
 		)).Methods("POST")
 
