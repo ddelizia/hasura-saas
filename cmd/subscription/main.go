@@ -47,11 +47,12 @@ func main() {
 			hsmiddleware.Json(),
 		)).Methods("POST")
 
-	handlerCancel := subscription.NewCancelHandler(graphqlSevice, sdkService)
 	r.Handle("/cancel",
 		hsmiddleware.Chain(
-			handlerCancel.ServeHTTP,
+			subscription.NewCancelHandler(hsStripeService).ServeHTTP,
 			hsmiddleware.LogRequest(),
+			hsmiddleware.ActionBodyToContext(&subscription.ActionPayloadCreate{}),
+			hsmiddleware.AuthzFromSession(graphqlSevice),
 			hsmiddleware.Json(),
 		)).Methods("POST")
 

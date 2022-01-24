@@ -31,3 +31,11 @@ type RetryOutput struct {
 	IDAccount string
 	IsActive  bool
 }
+
+type CancelInput struct {
+	IDAccount string
+}
+
+type CancelOutput struct {
+	Status string
+}

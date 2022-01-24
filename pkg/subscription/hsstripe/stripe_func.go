@@ -8,6 +8,7 @@ import (
 	"github.com/stripe/stripe-go/sub"
 )
 
+// Wrapping stripe functions for testing purposes
 var (
 	// Customer
 
@@ -26,6 +27,7 @@ var (
 
 	// Subscription
 
-	StripeNewSubFunc func(params *stripe.SubscriptionParams) (*stripe.Subscription, error)            = sub.New
-	StripeGetSubFunc func(id string, params *stripe.SubscriptionParams) (*stripe.Subscription, error) = sub.Get
+	StripeNewSubFunc    func(params *stripe.SubscriptionParams) (*stripe.Subscription, error)                  = sub.New
+	StripeGetSubFunc    func(id string, params *stripe.SubscriptionParams) (*stripe.Subscription, error)       = sub.Get
+	StripeCancelSubFunc func(id string, params *stripe.SubscriptionCancelParams) (*stripe.Subscription, error) = sub.Cancel
 )
